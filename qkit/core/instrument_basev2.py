@@ -8,7 +8,7 @@ from enum import Enum, unique, auto
 import numpy as np
 
 from qkit.core.instrument_base import Instrument
-from qkit.drivers.visa_prologix import instrument
+from qkit.drivers.visa_prologix import instrument as prologix_instrument #To not raise conflicts with Instrument
 import logging
 
 class ModernInstrument(Instrument):
@@ -395,6 +395,77 @@ def caching(cache_policy: CachePolicy, get_after_set = False):
         func.set_caching(cache_policy, get_after_set)
         return func
     return decorator
+
+class PrologixGPIBInstrument(ModernInstrument):
+    """
+    Base class for instruments that communicate via a Prologix Ethernet-to-GPIB bridge.
+    This class handles the low-level communication specifics for instruments connected via Prologix.
+    """
+    def __init__(self, name: str, gpib_address_str: str, **kwargs):
+        # Calls the parent ModernInstrument's constructor
+        # It handles tags and other general instrument options
+        super().__init__(name, **kwargs)
+
+        # Initialize the Prologix specific instrument connection
+        # The 'prologix_instrument' class from visa_prologix.py takes the GPIB address string
+        # and optionally 'ip' and 'port' as kwargs for the bridge itself.
+        self._prologix_instrument = prologix_instrument(gpib_address_str, **kwargs)
+        logging.info(f"{self.__class__.__name__}: Initializing Prologix GPIB instrument for {name} at {gpib_address_str}")
+
+        # Crucial: Call discover_capabilities to register properties and functions
+        # defined in this class and any inheriting classes (like specific instrument drivers).
+        # ModernInstrument expects this for auto-discovery.
+        self.discover_capabilities()
+
+
+    def write(self, msg: str):
+        """
+        Sends a command string to the GPIB instrument via Prologix bridge.
+        """
+        logging.debug(f"Prologix GPIB Write ({self._name}): {msg}")
+        return self._prologix_instrument.write(msg)
+
+    def ask(self, msg: str) -> str:
+        """
+        Queries the GPIB instrument via Prologix bridge and returns the response string.
+        """
+        logging.debug(f"Prologix GPIB Ask ({self._name}): {msg}")
+        return self._prologix_instrument.ask(msg)
+
+    def ask_for_values(self, msg: str, **kwargs) -> np.ndarray:
+        """
+        Queries the GPIB instrument via Prologix bridge for numeric/binary values.
+        The underlying prologix_instrument's ask_for_values returns a string.
+        This method attempts to parse that string into a NumPy array.
+        """
+        logging.debug(f"Prologix GPIB Ask_for_values ({self._name}): {msg} (kwargs: {kwargs})")
+        raw_response = self._prologix_instrument.ask_for_values(msg, **kwargs)
+
+        try:
+            # Attempt to convert common comma-separated or space-separated numeric strings
+            # This might need refinement based on actual instrument output formats.
+            # Common formats are like "1.23,2.34,3.45" or "1.23 2.34 3.45"
+            values = [float(x) for x in raw_response.strip().replace(',', ' ').split()]
+            return np.array(values)
+        except ValueError:
+            logging.warning(f"PrologixGPIBInstrument: Failed to parse numeric values from '{raw_response}'. Returning raw string.")
+            return raw_response # Fallback to raw string if parsing fails
+
+
+    def close(self):
+        """
+        Closes the connection to the Prologix GPIB bridge.
+        """
+        if hasattr(self, '_prologix_instrument') and self._prologix_instrument is not None:
+            logging.info(f"Closing Prologix GPIB connection for {self._name}")
+            # The prologix_instrument class has a _close_connection method
+            self._prologix_instrument._close_connection()
+            self._prologix_instrument = None
+
+    def __del__(self):
+        """Ensure the connection is closed when the object is deleted."""
+        self.close()
+
 
 class QkitProperty:
     """

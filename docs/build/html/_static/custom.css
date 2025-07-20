@@ -1,0 +1,14 @@
+/* custom.css */
+
+/* Override the maximum width for the main content area */
+.wy-nav-content {
+    max-width: 100% !important;
+}
+
+/* Adjust padding if needed to bring content closer to edges */
+.rst-content {
+    padding-right: 2.5em;
+    /* Default is 4em, adjust as desired */
+    padding-left: 2.5em;
+    /* Default is 4em, adjust as desired */
+}
