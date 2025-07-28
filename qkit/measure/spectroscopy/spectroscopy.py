@@ -437,17 +437,14 @@ class spectrum(object):
         logging.info('Measurement finished, data saved in ' + self._data_file.get_filepath())
         
         file= self._end_measurement()
-        if self._fit_resonator:
-            #self._do_fit_resonator()
+        if self._fit_resonator:            #self._do_fit_resonator()
             self.cir=circuit.notch_port(self._freqpoints,data_amp*np.exp(1j*data_pha))
             power=self.vna.do_get_power()
             self.cir.autofit()
             self.cir.plotall()
             plt.suptitle(f'{power} dBm')
-
+            
         return file # return the filepath of the measurement file
-
-        
 
     def measure_2D(self, web_visible=True):
         '''
@@ -493,8 +490,12 @@ class spectrum(object):
             self._qvk_process = qviewkit.plot(self._data_file.get_filepath(),datasets=list(self._data_file.hf.hf.attrs['default_ds']))
         if self._fit_resonator:
             self._resonator = resonator(self._data_file.get_filepath())
-        return self._measure()
-
+        
+        # Execute measurement and collect results
+        self._measure_internal()
+        
+        # Return the filepath after all measurements are complete
+        return self._data_file.get_filepath()
 
     def measure_3D(self, web_visible=True):
         '''
@@ -557,7 +558,11 @@ class spectrum(object):
                 points = len(self.x_vec) * len(self.y_vec)
             self._p = Progress_Bar(points, '3D VNA sweep ' + self.dirname, self.vna.get_sweeptime_averages())
 
-        return self._measure()
+        # Execute measurement and collect results
+        self._measure_internal()
+        
+        # Return the filepath after all measurements are complete
+        return self._data_file.get_filepath()
 
     def set_cw_time_measurement(self, status):
         """
@@ -567,21 +572,19 @@ class spectrum(object):
         :param web_visible:
         :return:
         """
-
         if status:
             self.vna.set_sweep_type('CW')
             self._scan_time = True
             self.measurement_object_axis_name = 'time'
-
-        if status is False:
+        else:
             self.vna.set_sweep_type('LIN')
             self._scan_time = False
             self.measurement_object_axis_name = 'frequency'
-
-    def _measure(self):
+            
+    def _measure_internal(self):
         '''
-        measures and plots the data depending on the measurement type.
-        the measurement loops feature the setting of the objects and saving the data in the .h5 file.
+        Internal method that performs the actual measurement but doesn't return anything.
+        This allows measure_2D to control when the file path is returned.
         '''
         qkit.flow.start()
         try:
@@ -594,7 +597,7 @@ class spectrum(object):
 
                 if self.log_function != None:
                     for i, f in enumerate(self.log_function):
-                        self._log_value[i].append(float(f()))
+                        self._log_value[i].append(float(f(ix)))
 
                 if self.log_function_2D != None:
                     for i, f in enumerate(self.log_function_2D):
@@ -682,15 +685,27 @@ class spectrum(object):
                         self._p.iterate()
                     qkit.flow.sleep()
         finally:
-            file=self._end_measurement()
+            # Just end the flow, don't end the measurement or return anything
             qkit.flow.end()
-            return file # return the filepath of the measurement file
+            
+    def _measure(self):
+        '''
+        measures and plots the data depending on the measurement type.
+        the measurement loops feature the setting of the objects and saving the data in the .h5 file.
+        '''
+        # Call the internal measurement function
+        self._measure_internal()
+        
+        # End the measurement and return the filepath
+        file_path = self._end_measurement()
+        
+        return file_path # return the filepath of the measurement file
 
     def _end_measurement(self):
         '''
         the data file is closed and filepath is printed
         '''
-        logging.INFO("Data saved to : ",str(self._data_file.get_filepath()))
+        # logging.INFO("Data saved to : ",str(self._data_file.get_filepath()))
         # qviewkit.save_plots(self._data_file.get_filepath(),comment=self._plot_comment) #old version where we have to wait for the plots
         t = threading.Thread(target=qviewkit.save_plots, args=[self._data_file.get_filepath(), self._plot_comment])
         t.start()
