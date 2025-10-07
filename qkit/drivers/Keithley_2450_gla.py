@@ -37,7 +37,7 @@ class Keithley_2450_gla(Instrument):
         self._address = address
         self._visainstrument = visa.instrument(self._address)
         self._visainstrument.read_termination="\n"
-        self._visainstrument.timeout = 100000 #big timeout required to wait for long sweeps
+        self._visainstrument.timeout = 1000000 #big timeout required to wait for long sweeps
         self.rvc_mode   = False #resistance via current
         self.four_wire  = False
         self.meas_delay = 0.1 #delay between measurements in sweeps

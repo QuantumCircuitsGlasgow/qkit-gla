@@ -1,21 +1,54 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
+"""Circuit analysis tools for superconducting resonator measurement data.
+
+This module provides tools for analyzing the frequency response of superconducting
+resonators using circle fitting methods. It extracts key parameters such as 
+resonance frequency, quality factors, and delay corrections from complex scattering
+data (S11 or S21).
+
+The implementation is based on established methods from microwave engineering and
+quantum circuit analysis, particularly useful for characterizing superconducting
+quantum devices.
+
+References:
+    Probst, S., et al. "Efficient and robust analysis of complex scattering data
+    under noise in microwave resonators." Review of Scientific Instruments 86.2 (2015).
+    
+    Rieger, M., et al. "Investigating Fano resonances and asymmetric line shapes
+    in double-slit superconducting quantum interference devices." 
+    arXiv preprint arXiv:2209.03036 (2022).
+
+Example:
+    >>> fitter = CircleFitter(frequencies, s21_data)
+    >>> results = fitter.fit_result()
+    >>> quality_factor = results["Qi"]
+    >>> resonance_freq = results["fr"]
+
+Attributes:
+    plot_enable: Boolean flag indicating if plotting functionality is available.
+
+    
 @author: Wridhdhisom Karar ,2024
 
 inspired by and based on resonator tools of Sebastian Probst
 https://github.com/sebastianprobst/resonator_tools
 """
 
-import numpy as np
 import logging
+# from logging.config import _LoggerConfiguration
+from typing import Dict, List, Optional, Tuple, Union, Any
+
+import numpy as np
+import scipy.constants as const
 import scipy.optimize as spopt
 from scipy import stats
 from scipy.interpolate import splrep, splev
 from scipy.ndimage.filters import gaussian_filter1d
-from .helper_functions import *
-import scipy.constants as const
+
+# Import specific functions from helper_functions instead of using wildcard import
+from .helper_functions import Watt2dBm, dBm2Watt
 
 
 plot_enable = False
@@ -32,24 +65,38 @@ except (ImportError, AttributeError):
         plot_enable = False
 
 class CircleFitter(object):
-    """
-    Base class for common routines and definitions shared between both ports.
+    """Base class for common routines and definitions shared between both ports.
     
-    inputs:
-    - f_data: Frequencies for which scattering data z_data_raw is taken
-    - z_data_raw: Measured values for scattering parameter S11 or S21 taken at
-                  frequencies f_data
+    This class provides methods to analyze complex scattering data using circle fitting
+    techniques. It handles normalization, calibration, and extraction of quality factors
+    and other resonator parameters.
+    
+    Attributes:
+        n_ports: Number of ports (set by child classes).
+        f_data: Array of frequency points.
+        z_data_raw: Complex scattering data.
+        fitresults: Dictionary containing the fit results.
+        
+    Note:
+        This class is meant to be subclassed for specific port configurations.
     """
     
-    def __init__(self, f_data, z_data_raw=None,delay=None,power=0):
-        '''
-        z_data_raw : complex Sij data
-        f_data : frequency data
-        delay : time delay between output and input signal leading to linearly frequency dependent phase shift
-        '''        
+    # Will be overridden by subclasses for specific port configurations
+    n_ports = 1
+    def __init__(self, f_data: np.ndarray, z_data_raw: Optional[np.ndarray] = None, 
+                 delay: Optional[float] = 0., power: float = 0):
+        """Initialize the CircleFitter instance.
+        
+        Args:
+            f_data: Array of frequency points in Hz where measurements were taken.
+            z_data_raw: Complex scattering data (S11 or S21) corresponding to f_data.
+            delay: Time delay between output and input signal leading to linearly 
+                frequency dependent phase shift, in seconds.
+            power: Power level in dBm at which measurements were taken.
+        """        
         
         self.f_data = np.array(f_data)
-        self.z_data_raw = np.array(z_data_raw)
+        self.z_data_raw = np.array(z_data_raw) if z_data_raw is not None else None
         self.z_data_norm = None
         self.delay = delay
         self.fitresults = {}
@@ -80,10 +127,10 @@ class CircleFitter(object):
             1. - 2.*Ql / (complexQc * cls.n_ports * (1. + 2j*Ql*(f/fr-1.)))
         )
     
-    def fit_result(self,plot=True,prefit=None):
+    def fit_result(self,plot=False,prefit=None):
         """
         Returns the fit results as a dictionary.
-
+        ## If plot is True, it will also plot the results twice.
         """
         print("delay in autofit",self.delay)
         self.autofit(fixed_delay=self.delay,prefit=None)
@@ -103,6 +150,7 @@ class CircleFitter(object):
         suitable for higher powers, where the Ql changes and the Qc changes, and the radius changes
         """
         if prefit is not None:
+            # Use prefit results as initial guess for the fit and then update
             a=prefit["a"]
             alpha=prefit["alpha"]
             theta=prefit["theta"]
@@ -110,6 +158,7 @@ class CircleFitter(object):
             Ql=prefit["Ql"]
             Qc=prefit["Qc"]
             delay=prefit["delay"]
+
             self.fitresults.update(prefit)
             self.delay=delay # update delay from the prev fit
             guess=(fr,Ql,delay)
@@ -120,15 +169,16 @@ class CircleFitter(object):
             pass
             # self._fit_delay() # TODO : fix the delay calculator.
         else:
-              # Store result in dictionary (also for backwards-compatibility)
-            self.fitresults["delay"] = fixed_delay
+              # Store result in dictionary (also for backwards-compatibility)            self.fitresults["delay"] = fixed_delay
             self.xc, self.yc, r0 = self._fit_circle(self.z_data_raw)
             self.fitresults["r0"] = r0
-            self.fitresults["c"] = np.complex(self.xc, self.yc)
-            z_data = self.z_data_raw - np.complex(self.xc,self.yc)
+            self.fitresults["c"] = complex(self.xc, self.yc)
+            z_data = self.z_data_raw - complex(self.xc, self.yc)
         # Find first estimate of parameters
             # fr, Ql, theta, self.delay_excess = self._fit_phase(z_data) # put this into auto delay calculation, no need TODO
         logging.info(f'the delay entered is {self.delay:.2e} ns, \n fitresults : {self.fitresults}')
+
+        # don't do anything with fixed_delay, calibrate uses the passes init delay. Or pass with prefit.
         self._calibrate(phase_guess=guess) # finds all the parameters after phase fit, and delay fit ;6 parameters
         self._normalize()
         self._extract_Qs(calc_errors=calc_errors)
@@ -151,16 +201,20 @@ class CircleFitter(object):
             "photons":photons,
             "single_photon_power":single_photon_power
         })
-    
+
+
+
     def _fit_delay(self):
-        """
-        Finds the cable delay by repeatedly centering the "circle" and fitting
+        """Finds the cable delay by repeatedly centering the "circle" and fitting
         the slope of the phase response.
+        
+        This method iteratively improves the estimation of the cable delay between
+        the input and output signals, which causes a linearly frequency-dependent phase shift.
         """
         
         # Translate data to origin
         xc, yc, r0 = self._fit_circle(self.z_data_raw)
-        z_data = self.z_data_raw - np.complex(xc, yc)
+        z_data = self.z_data_raw - complex(xc, yc)
         # Find first estimate of parameters
         fr, Ql, theta, self.delay = self._fit_phase(z_data)
         
@@ -222,20 +276,25 @@ class CircleFitter(object):
 
 
 
-    
-    def _calibrate(self,phase_guess=None):
-        """
-        Finds the parameters for normalization of the scattering data. See
-        Sij for explanation of parameters.
+    def _calibrate(self, phase_guess: Optional[Tuple[float, float, float]] = None):
+        """Finds the parameters for normalization of the scattering data.
+        
+        This method calibrates the raw data by correcting for delay and calculating
+        various parameters needed for the circle fit analysis.
 
-        (fr,Ql,delay) are found from the phase fit guess and passed from higher powers
+        Args:
+            phase_guess: Optional initial guess for parameters (fr, Ql, delay) passed
+                from previous fits, useful for higher powers.
         """
         
         # Correct for delay and translate circle to origin
-        z_data = self.z_data_raw * np.exp(2j*np.pi*self.delay*self.f_data)
+        delay = 0.0 if self.delay is None else self.delay
+        z_data = self.z_data_raw * np.exp(2j*np.pi*delay*self.f_data)
 
         self.z_data_corr = z_data.copy() # store the corrected data
         # z_data_smooth=soft_averager(z_data.real,2)+(1j*soft_averager(z_data.imag,2))
+
+        # Plot delay calibration if logging level is set to INFO or lower
         if logging.getLogger().getEffectiveLevel() <= logging.INFO:
             plt.figure()
             plt.scatter(np.real(self.z_data_raw),np.imag(self.z_data_raw))
@@ -379,7 +438,8 @@ class CircleFitter(object):
         - isolation (dB): Suppression of the interference path by this value.
                           The corresponding relative background amplitude b
                           is calculated with b = 10**(-isolation/20).
-        - b (lin): Relative background path amplitude of Fano.
+        - b (lin): Relative background path amplitude of Fano. Uppper limit can be max=(b. sin (psi))
+        which is the imaginary point where the off. res point lies after delay correction + normalization.
 
         outputs (added to fitresults dictionary):
         - Qi_min, Qi_max: Systematic uncertainty range for Qi
@@ -402,7 +462,7 @@ class CircleFitter(object):
             self.Qc_max = np.nan
         
         # Calculate error on radius of circle
-        R_mid = self.r0 * np.cos(self.phi)
+        R_mid = self.r0 * np.cos(self.phi)  # real part of the baseline normalised circle
         R_err = self.r0 * np.sqrt(np.abs(b**2 - np.sin(self.phi)**2))
         R_min = R_mid - R_err
         R_max = R_mid + R_err
@@ -410,8 +470,10 @@ class CircleFitter(object):
         # Convert to ranges of quality factors
         self.Qc_min = self.Ql / (self.n_ports*R_max)
         self.Qc_max = self.Ql / (self.n_ports*R_min)
+        self.Qc_mid = self.Ql / (self.n_ports*R_mid)
         self.Qi_min = self.Ql / (1 - self.n_ports*R_min)
         self.Qi_max = self.Ql / (1 - self.n_ports*R_max)
+        self.Qi_mid = self.Ql / (1 - self.n_ports*R_mid)
         
         # Handle unphysical results
         if R_max >= 1./self.n_ports:
@@ -423,6 +485,9 @@ class CircleFitter(object):
             "Qc_max": self.Qc_max,
             "Qi_min": self.Qi_min,
             "Qi_max": self.Qi_max,
+            "Qc_mid": self.Qc_mid,
+            "Qi_mid": self.Qi_mid,
+
             "fano_b": b
         })
     
@@ -516,7 +581,7 @@ class CircleFitter(object):
         phase = np.unwrap(np.angle(z_data))
         
         # For centered circle roll-off should be close to 2pi. If not warn user.
-        if np.max(phase) - np.min(phase) <= 0.8*2*np.pi: #80% of 2pi
+        if np.max(phase) - np.min(phase) <= 0.7*2*np.pi: #70% of 2pi
             logging.warning(
                 "Data does not cover a full circle (only {:.1f}".format(
                     np.max(phase) - np.min(phase)
@@ -527,21 +592,33 @@ class CircleFitter(object):
         else:
             roll_off = 2*np.pi
         
-        # Set useful starting parameters
+        # Set useful starting parameters (improved 2025)
         if guesses is None:
             # Use maximum of derivative of phase as guess for fr
             phase_smooth = gaussian_filter1d(phase, 30)
+
+            # phase_derivative = np.gradient(phase_smooth,self.f_data)
             phase_derivative = np.gradient(phase_smooth)
+
+
+            theta_guess=phase[np.argmax(np.abs(phase_derivative))]/2 # this is the frequency where the phase derivative is maximum
+            # Guess for fr is the frequency where the phase derivative is maximum
+                        
             fr_guess = self.f_data[np.argmax(np.abs(phase_derivative))]
-            Ql_guess = 2*fr_guess / (self.f_data[-1] - self.f_data[0]) #2 F_max / delta_f
+
+            # grad=np.max(np.abs(phase,self.f_data))
+            Ql_guess = 2*fr_guess / (self.f_data[-1] - self.f_data[0]) #2 F_max / delta_f DO NOT USE THIS
             # Estimate delay from background slope of phase (substract roll-off)
-            slope = phase[-1] - phase[0] + roll_off
+            slope = phase[-1] - phase[0] +roll_off
             delay_guess = -slope / (2*np.pi*(self.f_data[-1]-self.f_data[0]))
+
+            # Ql_guess = fr_guess *(grad -2*np.pi*delay_guess) / 4
         else:
             fr_guess, Ql_guess, delay_guess  = guesses
         # This one seems stable and we do not need a manual guess for it
         theta_guess = 0.5*(np.mean(phase[:5]) + np.mean(phase[-5:]))
         
+        logging.info(f'Initial guesses: fr={fr_guess:.2f} Hz, Ql={Ql_guess:.2f}, theta={theta_guess:.2f}, delay={delay_guess:.2e} s ')
         # Fit model with less parameters first to improve stability of fit
         
         def residuals_Ql(params,freq=self.f_data,phase=phase):
@@ -692,17 +769,21 @@ class CircleFitter(object):
         imag2 = self.z_data_sim.imag
         real_norm=self.z_data_norm.real
         imag_norm=self.z_data_norm.imag
-
-        corr_real=self.z_data_corr.real
-        corr_imag=self.z_data_corr.imag
+        #delay corrected only
+        delay_corr_real=self.z_data_corr.real
+        delay_corr_imag=self.z_data_corr.imag
         c=self.fitresults['c']
         offrespoint=self.offrespoint
+        # Find the index of the frequency closest to the resonance frequency
+        res_idx = np.argmin(np.abs(self.f_data - self.fr))
+        respoint= self.z_data_corr[res_idx]
 
         fig,axs=plt.subplots(3,2,gridspec_kw={'width_ratios': [1,1],'height_ratios': [1,1,1]},figsize=(8,11))
-        axs[0,0].axvline(0, c="k", ls="--", lw=1)
-        axs[0,0].axhline(0, c="k", ls="--", lw=1)
-        axs[0,0].plot(real,imag,label='rawdata')
-        axs[0,0].plot(real2,imag2,label='fit')
+        # axs[0,0].axvline(0, c="k", ls="--", lw=1)
+        axs[0,0].axhline(0, c="k", ls="--", lw=1,alpha=0.6)
+        axs[0,0].plot(real[::5],imag[::5],label='rawdata',marker='o',markersize=5,markerfacecolor='None',ls='')
+        axs[0,0].plot(real2,imag2,label='fit',lw=2)
+        axs[0,0].set_title('Raw data and fit',fontsize = 14)
         
         axs[0,0].set_aspect("equal",adjustable='datalim')
         axs[0,0].set_xlabel('Re(S21)',fontsize = 12)
@@ -711,61 +792,106 @@ class CircleFitter(object):
 
         imag_cannonical=imag-self.offrespoint.imag
         axs[0,1].set_aspect("equal",adjustable='datalim')
-        axs[0,1].axvline(0, c="k", ls="--", lw=1)
-        axs[0,1].axhline(0, c="k", ls="--", lw=1)
+        axs[0,1].axvline(1, c="k", ls="--", lw=1,alpha=0.6)
+        axs[0,1].axhline(0, c="k", ls="--", lw=1,alpha=0.6)
         # axs[0,1].scatter(real2,imag2,label='sim-data',s=3,color='b')
-        axs[0,1].scatter(real_norm,imag_norm,label='norm-data-final',s=2,color='r')
-        axs[0,1].plot(self.z_data_sim_norm.real,self.z_data_sim_norm.imag,'m-',label='sim-n x r - rot')
-        axs[0,1].plot(self.z_data_sim_norm.real,self.z_data_sim_norm.imag,'y-',linewidth=100*self.a*self.sigma,alpha=0.5)
-
+        axs[0,1].scatter(real_norm,imag_norm,label='norm-data',s=15,facecolors='None',edgecolors='r')
+        # sim_norm is simulated without a,alpha,delay; has phi but still a circle nevertheless
+        axs[0,1].plot(self.z_data_sim_norm.real,self.z_data_sim_norm.imag,color='k',ls='-',label='sim-data (no a,alp,del)')
+        # axs[0,1].plot(self.z_data_sim_norm.real,self.z_data_sim_norm.imag,'y-',linewidth=100*self.a*self.sigma,alpha=0.5)
+        axs[0,1].set_title(f'Normalized data w/o (a, $ \\alpha,\\tau $ )',fontsize = 14)
         axs[0,1].set_xlabel('Re(S21)',fontsize = 12)
         axs[0,1].set_ylabel('Im(S21)',fontsize = 12)
-        axs[0,1].legend(loc=1,fontsize=8)
+        axs[0,1].legend(loc='best',fontsize=8)
 
         # imag_cannonical=imag-self.offrespoint.imag
         
-        axs[1,0].plot(self.f_data*1e-9,np.absolute(self.z_data_raw),label='rawdata')
-        axs[1,0].plot(self.f_data*1e-9,np.absolute(self.z_data_sim),label='fit')
+        axs[1,0].plot(self.f_data*1e-9,np.absolute(self.z_data_raw),label='rawdata',marker='o',markersize=5,markerfacecolor='None',ls='')
+        axs[1,0].plot(self.f_data*1e-9,np.absolute(self.z_data_sim),label='fit',lw=1.5)
         axs[1,0].set_xlabel('f (GHz)',fontsize = 12)
-        axs[1,0].set_ylabel('|S21|',fontsize = 12)
+        axs[1,0].set_ylabel(f'$ | S21 | $',fontsize = 12)
         axs[1,0].legend()
 
-        axs[1,1].plot(self.f_data*1e-9,np.angle(self.z_data_raw),label='rawdata')
+        axs[1,1].plot(self.f_data*1e-9,np.angle(self.z_data_raw),label='rawdata',marker='o',markersize=5,markerfacecolor='None',ls='')
         axs[1,1].plot(self.f_data*1e-9,np.angle(self.z_data_sim),label='fit')
         axs[1,1].set_xlabel('f (GHz)',fontsize = 12)
-        axs[1,1].set_ylabel('arg(|S21|)',fontsize = 12)
+        axs[1,1].set_ylabel(f'arg(|S21|)',fontsize = 12)
         axs[1,1].legend()
 
         a=np.exp(1j*self.fitresults['alpha'])  #alpha
-        imp = np.exp(-1j*self.fitresults['phi'])
+        phi_phase = np.exp(-1j*self.fitresults['phi'])
         r=self.fitresults['r0']
 
-        axs[2,0].axvline(0, c="k", ls="--", lw=1)
-        axs[2,0].axhline(0, c="k", ls="--", lw=1)
-        axs[2,0].scatter(corr_real,corr_imag,label=f'corr-a={a:.2e}',s=2,color='r')
+        diam= np.linalg.norm(respoint-self.offrespoint) #diameter of the circle
+        axs[2,0].axvline(0, c="k", ls="--", lw=0.5)
+        axs[2,0].axhline(0, c="k", ls="--", lw=0.5)
+        axs[2,0].scatter(delay_corr_real,delay_corr_imag,label=f'Delay removed' ,s=15,facecolors='None',edgecolors='orange')
         axs[2,0].scatter(np.real(c),np.imag(c),color='r',s=50,edgecolors='y',linewidths=1)
+    
         axs[2,0].scatter(np.real(self.offrespoint),np.imag(self.offrespoint),marker='X',color='k',s=100,edgecolors='y',linewidths=2)#
-        axs[2,0].plot([0,np.real(self.offrespoint)],[0,np.imag(self.offrespoint)],'b--')#
-
+        axs[2,0].scatter(np.real(respoint),np.imag(respoint),marker='x',color='g',s=100,edgecolors='None',linewidths=1,label='resonance point')
+        axs[2,0].plot(np.real([respoint,offrespoint]),np.imag([respoint,offrespoint]),'b:',alpha=0.3)#
+        
+        axs[2,0].annotate(f'd(2r)={diam:.2f}', xy=(0.45, 0.6), xycoords='axes fraction', fontsize=10, color='b')
+        axs[2,0].set_title(f'Delay removed ( delay-rem={self.fitresults["delay_remaining"]:.2e})',fontsize = 14)
         axs[2,0].set_aspect("equal",adjustable='datalim')
         axs[2,0].legend(loc=3,fontsize = 8)
 
 
-
+        # remove delay, then normalise by alpha , a
+        # here a=alpha
         final=self.z_data_corr/a/self.a
-        norm=(self.z_data_corr-offrespoint)/a #angle rotated alpha
+        norm=(self.z_data_corr-offrespoint)/a #subtract the off res point -> puts the off res-point to 0,0
+        # then roate by a (alpha)
+        
+        
         # norm=self.z_data_corr
         
         # norm_scale=norm * imp
-        norm_rot=norm.copy()*imp + 1
-        # norm_rot=norm_rot * a
+        ## rotate by phi, and shift it to 1,0
+        norm_rot=norm.copy()*phi_phase + 1
+
+        # relate it to a normalised circle. corrected / a/ alpha/ phi
+        normalised=self.z_data_corr/self.a/a
+        s21_term=(1-normalised)*phi_phase  # impedance mismatch corrected
+        mismatch_corrected=1-s21_term
+
+        # here we normalise the delay-corrected S21 / alpha / a and then
+        # (1- normalised ) * phi_rotate for impedance mismatch
+        # 1- mismatched = S21 corrected
+
+        # axs[2,1].scatter((c/a/self.a).real,(c/a/self.a).imag,label='c/a/alpha',s=50,edgecolors='y',linewidths=1,color='r',marker='x')
+
+        #How would it look if we maually corrected the phi after delay removal
+        #let's center the delay-off-res point because the point of rotation is the off res point
+        centered_delay_corr = self.z_data_corr - offrespoint
+        # then rorate by alpha and shift to 1,0
+        centered_delay_corr_rot = centered_delay_corr * phi_phase/a  + 1 # rotate by phi
+        sim_norm_fit=self.Sij(self.f_data,self.fr,self.Ql,self.absQc,)  # everything else zero
+        # sim_norm_fit=self.a*(sim_norm_fit-1)+1
+        sim_unnorm_fit=self.a *( sim_norm_fit-1) +1
 
         axs[2,1].set_aspect("equal",adjustable='datalim')
-        axs[2,1].axvline(1, c="k", ls="--", lw=1)
-        axs[2,1].axhline(0, c="k", ls="--", lw=1)
+        axs[2,1].axvline(1, c="k", ls="--", lw=0.5)
+        axs[2,1].axvline(0, c="k", ls="--", lw=0.5)
+
+        axs[2,1].axhline(0, c="k", ls="--", lw=0.5)
+
+
         # axs[2,1].scatter(final.real,final.imag,label='data-normed',s=3,color='b')
         # axs[2,1].scatter(c.real,c.imag,marker='X',s=100,color='g')
-        axs[2,1].scatter(norm_rot.real,norm_rot.imag,label='data/alpha/phi',s=3,color='k')
+
+        # axs[2,1].scatter(centered_delay_corr.real,centered_delay_corr.imag,label='delay-corrected',s=3,color='green')
+        # axs[2,1].scatter(centered_delay_corr_rot.real,centered_delay_corr_rot.imag,label='delay-corrected+phi',s=3,color='orange')
+
+        axs[2,1].scatter(norm_rot.real,norm_rot.imag,label='corrected/alpha/phi',s=15,color='k',facecolors='None')
+        axs[2,1].scatter(mismatch_corrected.real,mismatch_corrected.imag,label='corrected/alpha/phi/a',s=15,color='orange',marker='o')
+
+        axs[2,1].plot(sim_norm_fit.real,sim_norm_fit.imag,label=f'Sim-norm-absQc',ls='-',lw=1,color='b')
+        axs[2,1].plot(sim_unnorm_fit.real,sim_unnorm_fit.imag,label=f'a*(Sim-unnorm-absQc)',ls='-',lw=1,color='r')
+
+
+        axs[2,1].set_title(f'(1- data/a/alpha) phi-corrected')
         # axs[2,1].plot(self.z_data_sim_norm.real,self.z_data_sim_norm.imag,'m-',label='sim-n x r - rot')
 
         # axs[2,1].scatter(norm_rot.real,norm_rot.imag,label='data-n x r - rot',s=3,color='k')
@@ -807,6 +933,8 @@ class CircleFitter(object):
     def plotrawdata(self):
         if not plot_enable:
             raise ImportError("matplotlib not found")
+        if self.z_data_raw is None:
+            raise ValueError("z_data_raw is None. Cannot plot raw data.")
         real = self.z_data_raw.real
         imag = self.z_data_raw.imag
         plt.subplot(221)
