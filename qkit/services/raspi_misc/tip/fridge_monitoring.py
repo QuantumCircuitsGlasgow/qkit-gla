@@ -17,12 +17,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import sys
+import time
+
+from numpy import abs, mean
 from sendMail import *
 from tip_client import tip_client
-import time
-from numpy import mean
-from numpy import abs
-import sys
 
 
 def _sendTemp(temp):

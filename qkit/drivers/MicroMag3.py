@@ -2,11 +2,13 @@
 # MicroMag3+mbed 3d fluxgate magnetometer
 #
 
-from qkit.core.instrument_base import Instrument
-from time import time, sleep
-from qkit import visa
-import types
 import logging
+import types
+from time import sleep, time
+
+from qkit import visa
+from qkit.core.instrument_base import Instrument
+
 
 class MicroMag3(Instrument):
     '''

@@ -2,8 +2,10 @@
 # pressure readout device @ UFO: G1, G2
 # model: D39591000 (enhanced)
 
-from qkit.core.instrument_base import Instrument
 import socket
+
+from qkit.core.instrument_base import Instrument
+
 
 class EdwardsActiveDigitalController(Instrument):
 

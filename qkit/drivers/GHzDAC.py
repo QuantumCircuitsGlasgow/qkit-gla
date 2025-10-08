@@ -20,17 +20,20 @@
 #
 #
 
-from qkit.core.instrument_base import Instrument
-import types
-import logging
 # comms and byte packing
 import ctypes
+import logging
 import socket
-import dpkt
 import struct
-import numpy
 # waiting
 import time
+import types
+
+import dpkt
+import numpy
+
+from qkit.core.instrument_base import Instrument
+
 
 class GHzDAC(Instrument):
     '''
@@ -101,7 +104,6 @@ class GHzDAC(Instrument):
 
     def __del__(self):
         ''' clean up '''
-        pass
 
     def _init_udp(self):
         ''' open udp socket to EthernetServer '''

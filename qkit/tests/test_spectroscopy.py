@@ -1,27 +1,27 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 Test module for spectroscopy.py measurement functions
 """
 
-import sys
 import os
-import pytest
+import sys
+from unittest.mock import MagicMock, call
+
 import numpy as np
-from unittest.mock import MagicMock, patch, call
+import pytest
 
 # Add qkit path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Mock qkit modules before import
-sys.modules['qkit.flow'] = MagicMock()
-sys.modules['qkit.analysis.resonator'] = MagicMock()
-sys.modules['qkit.gui.plot'] = MagicMock()
-sys.modules['qkit.gui.notebook.Progress_Bar'] = MagicMock()
-sys.modules['qkit.measure.measurement_class'] = MagicMock()
-sys.modules['qkit.measure.write_additional_files'] = MagicMock()
-sys.modules['qkit.storage'] = MagicMock()
+sys.modules["qkit.flow"] = MagicMock()
+sys.modules["qkit.analysis.resonator"] = MagicMock()
+sys.modules["qkit.gui.plot"] = MagicMock()
+sys.modules["qkit.gui.notebook.Progress_Bar"] = MagicMock()
+sys.modules["qkit.measure.measurement_class"] = MagicMock()
+sys.modules["qkit.measure.write_additional_files"] = MagicMock()
+sys.modules["qkit.storage"] = MagicMock()
 
 # Now import the module to test
 from qkit.measure.spectroscopy import spectroscopy
@@ -31,7 +31,7 @@ from qkit.measure.spectroscopy import spectroscopy
 def mock_vna():
     """Create a mock VNA object with all the necessary methods"""
     vna = MagicMock()
-    
+
     # Setup basic VNA methods
     vna.get_type.return_value = "MockVNA"
     vna.get_function_names.return_value = ["start_measurement", "ready", "avg_status"]
@@ -39,15 +39,18 @@ def mock_vna():
     vna.get_sweeptime.return_value = 1.0
     vna.get_sweeptime_averages.return_value = 2.0
     vna.get_freqpoints.return_value = np.linspace(4e9, 8e9, 1001)
-    vna.get_tracedata.side_effect = lambda mode='AmpPha': (
-        np.random.rand(1001), np.random.rand(1001) if mode == 'AmpPha' else 
-        (np.random.rand(1001), np.random.rand(1001)))
+    vna.get_tracedata.side_effect = lambda mode="AmpPha": (
+        np.random.rand(1001),
+        np.random.rand(1001)
+        if mode == "AmpPha"
+        else (np.random.rand(1001), np.random.rand(1001)),
+    )
     vna.ready.return_value = True
     vna.get_span.return_value = 4e9
     vna.get_centerfreq.return_value = 6e9
     vna.get_averages.return_value = 10
     vna.get_Average.return_value = True
-    
+
     return vna
 
 
@@ -56,11 +59,11 @@ def mock_data_file():
     """Create a mock data file object"""
     data_file = MagicMock()
     data_file.get_filepath.return_value = "d:/test/data/file.h5"
-    
+
     # Setup hdf attributes
     hf_mock = MagicMock()
-    data_file.hf.hf.attrs = {'default_ds': []}
-    
+    data_file.hf.hf.attrs = {"default_ds": []}
+
     # Setup add methods
     data_file.add_coordinate.return_value = MagicMock()
     data_file.add_value_vector.return_value = MagicMock()
@@ -68,14 +71,14 @@ def mock_data_file():
     data_file.add_value_box.return_value = MagicMock()
     data_file.add_comment.return_value = None
     data_file.add_textlist.return_value = MagicMock()
-    
+
     return data_file
 
 
 @pytest.fixture
 def spectroscopy_obj(mock_vna, monkeypatch):
     """Create a spectroscopy object with mocked dependencies"""
-    
+
     # Mock qkit modules
     mock_flow = MagicMock()
     mock_resonator = MagicMock()
@@ -84,88 +87,98 @@ def spectroscopy_obj(mock_vna, monkeypatch):
     mock_measurement = MagicMock()
     mock_hdf = MagicMock()
     mock_waf = MagicMock()
-    
+
     # Configure monkeypatch
-    monkeypatch.setattr('qkit.flow', mock_flow)
-    monkeypatch.setattr('qkit.analysis.resonator.Resonator', mock_resonator)
-    monkeypatch.setattr('qkit.gui.plot.plot', mock_qviewkit)
-    monkeypatch.setattr('qkit.gui.notebook.Progress_Bar.Progress_Bar', mock_progress_bar)
-    monkeypatch.setattr('qkit.measure.measurement_class.Measurement', mock_measurement)
-    monkeypatch.setattr('qkit.measure.write_additional_files', mock_waf)
-    monkeypatch.setattr('qkit.storage.store.Data', lambda name, mode: mock_data_file())
-    
+    monkeypatch.setattr("qkit.flow", mock_flow)
+    monkeypatch.setattr("qkit.analysis.resonator.Resonator", mock_resonator)
+    monkeypatch.setattr("qkit.gui.plot.plot", mock_qviewkit)
+    monkeypatch.setattr(
+        "qkit.gui.notebook.Progress_Bar.Progress_Bar", mock_progress_bar
+    )
+    monkeypatch.setattr("qkit.measure.measurement_class.Measurement", mock_measurement)
+    monkeypatch.setattr("qkit.measure.write_additional_files", mock_waf)
+    monkeypatch.setattr("qkit.storage.store.Data", lambda name, mode: mock_data_file())
+
     # Create spectroscopy object
-    spec = spectroscopy.spectrum(mock_vna, exp_name='test')
-    
+    spec = spectroscopy.spectrum(mock_vna, exp_name="test")
+
     # Setup test parameters
     spec.x_vec = np.linspace(-0.5, 0.5, 11)
     spec.x_coordname = "current"
     spec.x_unit = "mA"
     spec.x_set_obj = MagicMock()
-    
+
     spec.y_vec = np.linspace(5e9, 6e9, 21)
     spec.y_coordname = "frequency"
     spec.y_unit = "Hz"
     spec.y_set_obj = MagicMock()
-    
+
     spec.dirname = "test_measurement"
     spec._nop = 1001
     spec._freqpoints = mock_vna.get_freqpoints()
-    
+
     # Mock internal methods
     spec._prepare_measurement_vna = MagicMock()
     spec._prepare_measurement_file = MagicMock()
     spec._data_file = mock_data_file
     spec._end_measurement = MagicMock(return_value=mock_data_file.get_filepath())
-    
+
     # Setup landscape object
     spec.landscape.xzlandscape_func = None
     spec.landscape.xylandscapes = []
-    
+
     return spec
 
 
 class TestSpectroscopy:
     """Test class for the spectroscopy module"""
-    
+
     def test_measure_internal(self, spectroscopy_obj, monkeypatch):
         """Test the _measure_internal function"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Mock the data structures
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
         spectroscopy_obj._scan_dim = 2  # Test 2D measurement
-        
+
         # Call the method
         spectroscopy_obj._measure_internal()
-        
+
         # Verify all x iterations were completed
         assert spectroscopy_obj.x_set_obj.call_count == len(spectroscopy_obj.x_vec)
-        
+
         # Verify that for each x value, we got and stored measurement data
-        assert spectroscopy_obj.vna.start_measurement.call_count == len(spectroscopy_obj.x_vec)
-        assert spectroscopy_obj.vna.get_tracedata.call_count == len(spectroscopy_obj.x_vec)
-        assert spectroscopy_obj._data_amp.append.call_count == len(spectroscopy_obj.x_vec)
-        assert spectroscopy_obj._data_pha.append.call_count == len(spectroscopy_obj.x_vec)
-        
+        assert spectroscopy_obj.vna.start_measurement.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+        assert spectroscopy_obj.vna.get_tracedata.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+        assert spectroscopy_obj._data_amp.append.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+        assert spectroscopy_obj._data_pha.append.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+
         # Verify the x_set_obj was called with each value in x_vec
         expected_calls = [call(x) for x in spectroscopy_obj.x_vec]
         spectroscopy_obj.x_set_obj.assert_has_calls(expected_calls, any_order=False)
-    
+
     def test_measure_1D(self, spectroscopy_obj, monkeypatch):
         """Test the measure_1D function"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Mock additional data structures
         spectroscopy_obj._data_real = MagicMock()
         spectroscopy_obj._data_imag = MagicMock()
-        
+
         # Call the method
         result = spectroscopy_obj.measure_1D()
-        
+
         # Verify the expected behavior
         assert spectroscopy_obj._scan_dim == 1
         assert spectroscopy_obj._prepare_measurement_vna.called
@@ -176,59 +189,66 @@ class TestSpectroscopy:
         assert spectroscopy_obj._data_real.append.called
         assert spectroscopy_obj._data_imag.append.called
         assert result == spectroscopy_obj._data_file.get_filepath()
-        
+
     def test_measure_2D(self, spectroscopy_obj, monkeypatch):
         """Test the measure_2D function"""
         # Mock the required methods but leave _measure_internal for detailed testing
         original_measure_internal = spectroscopy_obj._measure_internal
-        
+
         # Create a spy for _measure_internal to verify it completes all iterations
         measure_internal_calls = []
+
         def measure_internal_spy():
             measure_internal_calls.append(1)
             return original_measure_internal()
-            
+
         spectroscopy_obj._measure_internal = measure_internal_spy
-        
+
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Mock data structures to prevent actual I/O
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
-        
+
         # Call the method
         result = spectroscopy_obj.measure_2D()
-        
+
         # Verify the expected behavior
         assert spectroscopy_obj._scan_dim == 2
         assert spectroscopy_obj._prepare_measurement_vna.called
         assert spectroscopy_obj._prepare_measurement_file.called
-        assert len(measure_internal_calls) == 1  # _measure_internal was called exactly once
+        assert (
+            len(measure_internal_calls) == 1
+        )  # _measure_internal was called exactly once
         assert result == spectroscopy_obj._data_file.get_filepath()
-        
+
         # Verify _measure_internal completes all iterations by checking x_set_obj calls
         assert spectroscopy_obj.x_set_obj.call_count == len(spectroscopy_obj.x_vec)
-        
+
         # Verify correct data was appended for each x value
-        assert spectroscopy_obj._data_amp.append.call_count == len(spectroscopy_obj.x_vec)
-        assert spectroscopy_obj._data_pha.append.call_count == len(spectroscopy_obj.x_vec)
-        
+        assert spectroscopy_obj._data_amp.append.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+        assert spectroscopy_obj._data_pha.append.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+
     def test_measure_3D(self, spectroscopy_obj, monkeypatch):
         """Test the measure_3D function"""
         # Create a detailed implementation of _measure_internal for 3D measurement testing
         original_measure_internal = spectroscopy_obj._measure_internal
-        
+
         # Mock _measure_internal to check detailed behavior
         def mock_measure_internal_3d():
             # Set up the mocks for this test
             spectroscopy_obj._data_amp = MagicMock()
             spectroscopy_obj._data_pha = MagicMock()
-            
+
             # Call real implementation (or at least start the process)
             spectroscopy_obj.x_set_obj.reset_mock()
             spectroscopy_obj.y_set_obj.reset_mock()
-            
+
             # Simulate partial _measure_internal functionality
             for _ in range(3):  # Just test a few iterations for speed
                 spectroscopy_obj.x_set_obj(spectroscopy_obj.x_vec[0])
@@ -238,15 +258,15 @@ class TestSpectroscopy:
                     spectroscopy_obj._data_pha.append(np.random.rand(1001))
                 spectroscopy_obj._data_amp.next_matrix()
                 spectroscopy_obj._data_pha.next_matrix()
-        
+
         spectroscopy_obj._measure_internal = mock_measure_internal_3d
-        
+
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Call the method
         result = spectroscopy_obj.measure_3D()
-        
+
         # Verify the expected behavior
         assert spectroscopy_obj._scan_dim == 3
         assert spectroscopy_obj._prepare_measurement_vna.called
@@ -254,55 +274,55 @@ class TestSpectroscopy:
         assert spectroscopy_obj.x_set_obj.called
         assert spectroscopy_obj.y_set_obj.called
         assert result == spectroscopy_obj._data_file.get_filepath()
-        
+
         # Restore the original method
         spectroscopy_obj._measure_internal = original_measure_internal
-        
+
     def test_measure(self, spectroscopy_obj):
         """Test the _measure method that uses _measure_internal"""
         # Mock the _measure_internal method
         spectroscopy_obj._measure_internal = MagicMock()
-        
+
         # Call the method
         result = spectroscopy_obj._measure()
-        
+
         # Verify the expected behavior
         assert spectroscopy_obj._measure_internal.called
         assert spectroscopy_obj._end_measurement.called
         assert result == spectroscopy_obj._data_file.get_filepath()
-        
+
     def test_error_handling_no_x_obj(self, spectroscopy_obj):
         """Test error handling when x_set_obj is not set"""
         # Set the x_set_obj to None to trigger the error
         spectroscopy_obj.x_set_obj = None
-        
+
         # Call the method
         result = spectroscopy_obj.measure_2D()
-        
+
         # Verify the expected behavior
         assert result is None
         assert not spectroscopy_obj._prepare_measurement_vna.called
-        
+
     def test_error_handling_empty_x_vec(self, spectroscopy_obj):
         """Test error handling when x_vec is empty"""
         # Set the x_vec to empty to trigger the error
         spectroscopy_obj.x_vec = np.array([])
-        
+
         # Call the method
         result = spectroscopy_obj.measure_2D()
-        
+
         # Verify the expected behavior
         assert result is None
         assert not spectroscopy_obj._prepare_measurement_vna.called
-        
+
     def test_error_handling_3D_no_y_obj(self, spectroscopy_obj):
         """Test error handling for 3D when y_set_obj is not set"""
         # Set the y_set_obj to None to trigger the error
         spectroscopy_obj.y_set_obj = None
-        
+
         # Call the method
         result = spectroscopy_obj.measure_3D()
-        
+
         # Verify the expected behavior
         assert result is None
         assert not spectroscopy_obj._prepare_measurement_vna.called
@@ -312,65 +332,73 @@ class TestSpectroscopy:
         # Patch the _measure_internal method to a working mock
         real_measure_internal = spectroscopy_obj._measure_internal
         spectroscopy_obj._measure_internal = MagicMock()
-        
+
         # Test 2D measurement
         result_2d = spectroscopy_obj.measure_2D()
         assert spectroscopy_obj._measure_internal.called
         assert result_2d == spectroscopy_obj._data_file.get_filepath()
-        
+
         # Reset the mock
         spectroscopy_obj._measure_internal.reset_mock()
-        
+
         # Test 3D measurement
         result_3d = spectroscopy_obj.measure_3D()
         assert spectroscopy_obj._measure_internal.called
         assert result_3d == spectroscopy_obj._data_file.get_filepath()
-        
+
         # Restore the original method for a full integration test
         spectroscopy_obj._measure_internal = real_measure_internal
-        
+
         # Mock necessary objects to prevent actual I/O
-        monkeypatch.setattr('time.sleep', lambda x: None)
+        monkeypatch.setattr("time.sleep", lambda x: None)
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
-        
+
         # Call _measure which should use the real _measure_internal
         result = spectroscopy_obj._measure()
         assert result == spectroscopy_obj._data_file.get_filepath()
-        
+
     def test_measure_with_landscape_xy(self, spectroscopy_obj, monkeypatch):
         """Test the measurement with xy landscape functionality"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Mock the data structures
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
         spectroscopy_obj._data_amp.next_matrix = MagicMock()
         spectroscopy_obj._data_pha.next_matrix = MagicMock()
-        
+
         # Create a simple xy landscape
         curve_points = ([0.0, 0.1, 0.2], [5.5e9, 5.6e9, 5.7e9])
-        spectroscopy_obj.landscape.generate_fit_function_xy('lin', curve_points, y_span=100e6)
-        
+        spectroscopy_obj.landscape.generate_fit_function_xy(
+            "lin", curve_points, y_span=100e6
+        )
+
         # Set 3D measurement mode
         spectroscopy_obj._scan_dim = 3
-        
+
         # Create a mock for perform_measurement_at_point to test landscape functionality
-        original_perform_measurement = spectroscopy_obj.landscape.perform_measurement_at_point
+        original_perform_measurement = (
+            spectroscopy_obj.landscape.perform_measurement_at_point
+        )
         perform_measurement_calls = []
-        
+
         def mock_perform_measurement(x, y, ix):
             perform_measurement_calls.append((x, y, ix))
             return True  # Always measure
-            
-        spectroscopy_obj.landscape.perform_measurement_at_point = mock_perform_measurement
-        
+
+        spectroscopy_obj.landscape.perform_measurement_at_point = (
+            mock_perform_measurement
+        )
+
         # Mock vna to avoid actual hardware calls
         spectroscopy_obj.vna.start_measurement = MagicMock()
         spectroscopy_obj.vna.ready = MagicMock(return_value=True)
-        spectroscopy_obj.vna.get_tracedata = MagicMock(return_value=(np.random.rand(1001), np.random.rand(1001)))
-        
+        spectroscopy_obj.vna.get_tracedata = MagicMock(
+            return_value=(np.random.rand(1001), np.random.rand(1001))
+        )
+
         # Execute a limited number of iterations for speed
         for ix, x in enumerate([spectroscopy_obj.x_vec[0], spectroscopy_obj.x_vec[1]]):
             spectroscopy_obj.x_set_obj(x)
@@ -380,52 +408,56 @@ class TestSpectroscopy:
                 spectroscopy_obj._data_pha.append(np.random.rand(1001))
             spectroscopy_obj._data_amp.next_matrix()
             spectroscopy_obj._data_pha.next_matrix()
-        
+
         # Verify the landscape function was used
         assert len(perform_measurement_calls) > 0
-        
+
         # Restore original method
-        spectroscopy_obj.landscape.perform_measurement_at_point = original_perform_measurement
-        
+        spectroscopy_obj.landscape.perform_measurement_at_point = (
+            original_perform_measurement
+        )
+
     def test_measure_with_landscape_xz(self, spectroscopy_obj, monkeypatch):
         """Test the measurement with xz landscape functionality (frequency adjustment)"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Create a simple xz landscape (frequency tracking)
         curve_points = ([0.0, 0.1, 0.2], [6.0e9, 6.1e9, 6.2e9])
-        spectroscopy_obj.landscape.generate_fit_function_xz('lin', curve_points)
-        
+        spectroscopy_obj.landscape.generate_fit_function_xz("lin", curve_points)
+
         # Verify the landscape function was created
         assert spectroscopy_obj.landscape.xzlandscape_func is not None
-        
+
         # Test the vna_frequency_wrapper
         original_x_set_obj = spectroscopy_obj.x_set_obj
-        wrapped_x_set_obj = spectroscopy_obj.landscape.vna_frequency_wrapper(original_x_set_obj)
-        
+        wrapped_x_set_obj = spectroscopy_obj.landscape.vna_frequency_wrapper(
+            original_x_set_obj
+        )
+
         # Mock the vna set methods
         spectroscopy_obj.vna.set_startfreq = MagicMock()
         spectroscopy_obj.vna.set_stopfreq = MagicMock()
-        
+
         # Call the wrapped function
         wrapped_x_set_obj(0.1)
-        
+
         # Verify the VNA frequency was adjusted
         assert spectroscopy_obj.vna.set_startfreq.called
         assert spectroscopy_obj.vna.set_stopfreq.called
         assert original_x_set_obj.called
-        
+
     def test_edel_correction_data(self, spectroscopy_obj):
         """Test the electrical delay correction for phase data"""
         # Create test data
         test_phase = np.linspace(-np.pi, np.pi, 1001)
         spectroscopy_obj._freqpoints = np.linspace(4e9, 8e9, 1001)
-        
+
         # Test without electrical delay
         spectroscopy_obj.vna._edel = 0
         corrected_phase = spectroscopy_obj.edel_correction_data(test_phase.copy())
         np.testing.assert_allclose(corrected_phase, test_phase)
-        
+
         # Test with electrical delay
         spectroscopy_obj.vna._edel = 1e-10  # 100 ps delay
         corrected_phase = spectroscopy_obj.edel_correction_data(test_phase.copy())
@@ -434,175 +466,194 @@ class TestSpectroscopy:
     def test_measure_internal_detailed(self, spectroscopy_obj, monkeypatch):
         """Test _measure_internal in detail to ensure all iterations complete properly"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Create mocks for data storage and counting operations
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
-        
+
         # Track calls for analysis
         x_calls = []
         vna_measurement_calls = []
         data_append_calls = []
         next_matrix_calls = []
-        
+
         # Mock methods to track calls
         original_x_set_obj = spectroscopy_obj.x_set_obj
-        spectroscopy_obj.x_set_obj = lambda x: (x_calls.append(x), original_x_set_obj(x))[1]
-        
+        spectroscopy_obj.x_set_obj = lambda x: (
+            x_calls.append(x),
+            original_x_set_obj(x),
+        )[1]
+
         spectroscopy_obj.vna.start_measurement = lambda: vna_measurement_calls.append(1)
         spectroscopy_obj.vna.ready = lambda: True
-        spectroscopy_obj.vna.get_tracedata = lambda mode='AmpPha': (
+        spectroscopy_obj.vna.get_tracedata = lambda mode="AmpPha": (
             data_append_calls.append(1),
-            (np.random.rand(spectroscopy_obj._nop), np.random.rand(spectroscopy_obj._nop))
+            (
+                np.random.rand(spectroscopy_obj._nop),
+                np.random.rand(spectroscopy_obj._nop),
+            ),
         )[1]
-        
+
         original_append = spectroscopy_obj._data_amp.append
         spectroscopy_obj._data_amp.append = lambda x: original_append(x)
-        
+
         original_next_matrix = spectroscopy_obj._data_amp.next_matrix
-        spectroscopy_obj._data_amp.next_matrix = lambda: (next_matrix_calls.append(1), original_next_matrix())[1]
-        
+        spectroscopy_obj._data_amp.next_matrix = lambda: (
+            next_matrix_calls.append(1),
+            original_next_matrix(),
+        )[1]
+
         # Test 2D measurement
         spectroscopy_obj._scan_dim = 2
         x_calls.clear()
         vna_measurement_calls.clear()
         data_append_calls.clear()
-        
+
         # Run the test
         spectroscopy_obj._measure_internal()
-        
+
         # Verify all x values were used
         assert len(x_calls) == len(spectroscopy_obj.x_vec)
         assert all(x in x_calls for x in spectroscopy_obj.x_vec)
-        
+
         # Verify VNA measurements were made for each x value
         assert len(vna_measurement_calls) == len(spectroscopy_obj.x_vec)
-        
+
         # Verify data was appended for each measurement
-        assert spectroscopy_obj._data_amp.append.call_count == len(spectroscopy_obj.x_vec)
-        assert spectroscopy_obj._data_pha.append.call_count == len(spectroscopy_obj.x_vec)
-        
+        assert spectroscopy_obj._data_amp.append.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+        assert spectroscopy_obj._data_pha.append.call_count == len(
+            spectroscopy_obj.x_vec
+        )
+
         # Now test 3D measurement to verify x-y iteration behavior
         spectroscopy_obj._scan_dim = 3
         x_calls.clear()
         vna_measurement_calls.clear()
         data_append_calls.clear()
         next_matrix_calls.clear()
-        
+
         y_calls = []
         original_y_set_obj = spectroscopy_obj.y_set_obj
-        spectroscopy_obj.y_set_obj = lambda y: (y_calls.append(y), original_y_set_obj(y))[1]
-        
+        spectroscopy_obj.y_set_obj = lambda y: (
+            y_calls.append(y),
+            original_y_set_obj(y),
+        )[1]
+
         # Use smaller vectors for speed in 3D test
         original_x_vec = spectroscopy_obj.x_vec
         original_y_vec = spectroscopy_obj.y_vec
         spectroscopy_obj.x_vec = np.array([0.0, 0.1])
         spectroscopy_obj.y_vec = np.array([5.5e9, 5.6e9])
-        
+
         # Run the 3D test
         spectroscopy_obj._measure_internal()
-        
+
         # Restore original vectors
         spectroscopy_obj.x_vec = original_x_vec
         spectroscopy_obj.y_vec = original_y_vec
-        
+
         # Verify all x values were used
         assert len(x_calls) == len(spectroscopy_obj.x_vec)
-        
+
         # Verify all y values were used for each x value
         assert len(y_calls) == len(spectroscopy_obj.x_vec) * len(spectroscopy_obj.y_vec)
-        
+
         # Verify next_matrix was called once per x value
         assert len(next_matrix_calls) == len(spectroscopy_obj.x_vec)
-        
+
         # Verify data was appended for each x-y combination
         expected_data_points = len(spectroscopy_obj.x_vec) * len(spectroscopy_obj.y_vec)
         assert spectroscopy_obj._data_amp.append.call_count == expected_data_points
         assert spectroscopy_obj._data_pha.append.call_count == expected_data_points
-        
+
     def test_measure_internal_vna_waiting(self, spectroscopy_obj, monkeypatch):
         """Test that _measure_internal properly waits for the VNA to be ready"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Create mocks for data storage
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
-        
+
         # Mock VNA with a delay to test proper waiting behavior
         ready_count = 0
+
         def mock_vna_ready():
             nonlocal ready_count
             ready_count += 1
             # Return True only after the second call to simulate waiting for measurement
             return ready_count > 1
-            
+
         spectroscopy_obj.vna.ready = mock_vna_ready
         spectroscopy_obj.vna.start_measurement = MagicMock()
-        spectroscopy_obj.vna.get_tracedata = MagicMock(return_value=(np.random.rand(1001), np.random.rand(1001)))
-        
+        spectroscopy_obj.vna.get_tracedata = MagicMock(
+            return_value=(np.random.rand(1001), np.random.rand(1001))
+        )
+
         # Test with just one x value for simplicity
         spectroscopy_obj._scan_dim = 2
         spectroscopy_obj.x_vec = np.array([0.0])
-        
+
         # Run the test
         spectroscopy_obj._measure_internal()
-        
+
         # Verify VNA was polled until ready
         assert ready_count > 1
         assert spectroscopy_obj.vna.start_measurement.called
         assert spectroscopy_obj.vna.get_tracedata.called
         assert spectroscopy_obj._data_amp.append.called
         assert spectroscopy_obj._data_pha.append.called
-        
+
     def test_cw_time_measurement(self, spectroscopy_obj):
         """Test setting cw_time_measurement mode and its effects"""
         # Test enabling time measurement
         spectroscopy_obj.set_cw_time_measurement(True)
         assert spectroscopy_obj._scan_time == True
-        assert spectroscopy_obj.measurement_object_axis_name == 'time'
-        assert spectroscopy_obj.vna.set_sweep_type.called_with('CW')
-        
+        assert spectroscopy_obj.measurement_object_axis_name == "time"
+        assert spectroscopy_obj.vna.set_sweep_type.called_with("CW")
+
         # Test disabling time measurement
         spectroscopy_obj.set_cw_time_measurement(False)
         assert spectroscopy_obj._scan_time == False
-        assert spectroscopy_obj.measurement_object_axis_name == 'frequency'
-        assert spectroscopy_obj.vna.set_sweep_type.called_with('LIN')
-        
+        assert spectroscopy_obj.measurement_object_axis_name == "frequency"
+        assert spectroscopy_obj.vna.set_sweep_type.called_with("LIN")
+
         # Test time-based measurement prep
         spectroscopy_obj.set_cw_time_measurement(True)
         spectroscopy_obj._scan_dim = 1
-        
+
         # Mock data file functions
         data_time_mock = MagicMock()
         spectroscopy_obj._data_file.add_coordinate.return_value = data_time_mock
-        
+
         # Call prepare measurement file to see how it handles time vs frequency
         spectroscopy_obj._prepare_measurement_file()
-        
+
         # Verify time coordinate was added with correct parameters
         calls = spectroscopy_obj._data_file.add_coordinate.call_args_list
-        time_calls = [call for call in calls if call[0][0] == 'time']
+        time_calls = [call for call in calls if call[0][0] == "time"]
         assert len(time_calls) > 0
-        
+
     def test_full_measurement_cycle(self, spectroscopy_obj, monkeypatch):
         """Test a full measurement cycle from setup to completion"""
         # Patch time.sleep to speed up tests
-        monkeypatch.setattr('time.sleep', lambda x: None)
-        
+        monkeypatch.setattr("time.sleep", lambda x: None)
+
         # Mock methods to prevent actual I/O or hardware interaction
         spectroscopy_obj._prepare_measurement_vna = MagicMock()
         spectroscopy_obj._prepare_measurement_file = MagicMock()
         spectroscopy_obj._measure_internal = MagicMock()
         spectroscopy_obj._end_measurement = MagicMock(return_value="test_filepath")
-        
+
         # Mock data structures
         spectroscopy_obj._data_amp = MagicMock()
         spectroscopy_obj._data_pha = MagicMock()
         spectroscopy_obj._data_real = MagicMock()
         spectroscopy_obj._data_imag = MagicMock()
-        
+
         # Test 1D measurement
         result_1d = spectroscopy_obj.measure_1D(rescan=True)
         assert spectroscopy_obj._scan_dim == 1
@@ -611,13 +662,13 @@ class TestSpectroscopy:
         assert spectroscopy_obj.vna.get_tracedata.called
         assert spectroscopy_obj._end_measurement.called
         assert result_1d == "test_filepath"
-        
+
         # Reset mocks
         spectroscopy_obj._prepare_measurement_vna.reset_mock()
         spectroscopy_obj._prepare_measurement_file.reset_mock()
         spectroscopy_obj._measure_internal.reset_mock()
         spectroscopy_obj._end_measurement.reset_mock()
-        
+
         # Test 2D measurement
         result_2d = spectroscopy_obj.measure_2D()
         assert spectroscopy_obj._scan_dim == 2
@@ -626,13 +677,13 @@ class TestSpectroscopy:
         assert spectroscopy_obj._measure_internal.called
         assert spectroscopy_obj._end_measurement.called
         assert result_2d == "test_filepath"
-        
+
         # Reset mocks
         spectroscopy_obj._prepare_measurement_vna.reset_mock()
         spectroscopy_obj._prepare_measurement_file.reset_mock()
         spectroscopy_obj._measure_internal.reset_mock()
         spectroscopy_obj._end_measurement.reset_mock()
-        
+
         # Test 3D measurement
         result_3d = spectroscopy_obj.measure_3D()
         assert spectroscopy_obj._scan_dim == 3
@@ -641,7 +692,7 @@ class TestSpectroscopy:
         assert spectroscopy_obj._measure_internal.called
         assert spectroscopy_obj._end_measurement.called
         assert result_3d == "test_filepath"
-        
+
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])

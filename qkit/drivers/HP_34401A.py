@@ -23,48 +23,52 @@ QTLAB = True
 if QTLAB:
     from qkit.core.instrument_base import Instrument
 else:
-    class Instrument(object):
-        FLAG_GETSET = 0 
+
+    class Instrument:
+        FLAG_GETSET = 0
         FLAG_GET_AFTER_SET = 1
-        def __init__(self,name,**kwargs):
-            pass
-        def add_parameter(self,name,**kwargs):
-            pass
-        def add_function(self,name):
+
+        def __init__(self, name, **kwargs):
             pass
 
-import qkit
-from qkit import visa
-from time import sleep
+        def add_parameter(self, name, **kwargs):
+            pass
+
+        def add_function(self, name):
+            pass
+
+
 import sys
+from time import sleep
+
+from qkit import visa
+
 
 class HP_34401A(Instrument):
-
     def __init__(self, name, address):
-
-        Instrument.__init__(self, name, tags=['physical'])
+        Instrument.__init__(self, name, tags=["physical"])
 
         self._address = address
         self._visainstrument = visa.instrument(self._address)
 
-        self.set_default() #reset
+        self.set_default()  # reset
 
-        self.add_function('set_default')
-        self.add_function('get_bandwidth')
-        self.add_function('set_bandwidth')
-        self.add_function('get_auto_zero')
-        self.add_function('set_auto_zero')
-        self.add_function('get_configuration')
-        self.add_function('get_measurement_mode')
-        self.add_function('get_range')
-        self.add_function('get_resolution')
-        self.add_function('set_measurement_mode')
-        self.add_function('set_range_resolution')
-        self.add_function('get_NPLC')
-        self.add_function('set_NPLC')
-        self.add_function('get_autorange')
-        self.add_function('set_autorange')
-        self.add_function('measure')
+        self.add_function("set_default")
+        self.add_function("get_bandwidth")
+        self.add_function("set_bandwidth")
+        self.add_function("get_auto_zero")
+        self.add_function("set_auto_zero")
+        self.add_function("get_configuration")
+        self.add_function("get_measurement_mode")
+        self.add_function("get_range")
+        self.add_function("get_resolution")
+        self.add_function("set_measurement_mode")
+        self.add_function("set_range_resolution")
+        self.add_function("get_NPLC")
+        self.add_function("set_NPLC")
+        self.add_function("get_autorange")
+        self.add_function("set_autorange")
+        self.add_function("measure")
 
     def set_default(self):
         com_str = "*RST"
@@ -83,7 +87,7 @@ class HP_34401A(Instrument):
     ## 20 Hz to 300 kHz    1 reading / second
     ## 200 Hz to 300 kHz   10 readings / second
 
-    def set_bandwidth(self, bw = 20):
+    def set_bandwidth(self, bw=20):
         bw = int(bw)
         if (bw != 3) and (bw != 20) and (bw != 200):
             print >> sys.stderr, "HP_34401A: Input error in set_bandwidth()!"
@@ -93,16 +97,16 @@ class HP_34401A(Instrument):
         sleep(0.05)
         return self.get_bandwidth()
 
-    def get_auto_zero(self): # on or off
+    def get_auto_zero(self):  # on or off
         com_str = "ZERO:AUTO?"
         self._visainstrument.write(com_str)
         res_str = self._visainstrument.read()
         return res_str
 
-# ZERO:AUTO {OFF|ONCE|ON}
-# auto-zeroing after each measurement
+    # ZERO:AUTO {OFF|ONCE|ON}
+    # auto-zeroing after each measurement
 
-    def set_auto_zero(self, autoz = "OFF"):
+    def set_auto_zero(self, autoz="OFF"):
         if (autoz != "OFF") and (autoz != "ONCE") and (autoz != "ON"):
             print >> sys.stderr, "HP_34401A: Input error in set_auto_zero()!"
             return -1
@@ -116,10 +120,10 @@ class HP_34401A(Instrument):
         self._visainstrument.write(com_str)
         res_str = self._visainstrument.read()
         res_str = res_str.split(" ")
-        m_mode = res_str[0].split("\"")[1]
+        m_mode = res_str[0].split('"')[1]
         res_str = res_str[1].split(",")
         m_range = float(res_str[0])
-        m_resolution = float(res_str[1].split("\"")[0])
+        m_resolution = float(res_str[1].split('"')[0])
         return m_mode, m_range, m_resolution
 
     def get_measurement_mode(self):
@@ -131,12 +135,12 @@ class HP_34401A(Instrument):
     def get_resolution(self):
         return self.get_configuration()[2]
 
-    def set_measurement_mode(self, mode = "VOLT:DC"):
+    def set_measurement_mode(self, mode="VOLT:DC"):
         vcf = mode.split(":")[0]
         if (vcf != "VOLT") and (vcf != "CURR") and (vcf != "FREQ"):
             print >> sys.stderr, "HP_34401A: Input error in set_measurement_mode()!"
             return -1
-        if (vcf == "FREQ"):
+        if vcf == "FREQ":
             com_str = "CONF:FREQ"
             self._visainstrument.write(com_str)
             sleep(0.1)
@@ -148,20 +152,20 @@ class HP_34401A(Instrument):
         if (ac_dc != "AC") and (ac_dc != "DC"):
             print >> sys.stderr, "HP_34401A: Input error in set_measurement_mode()!"
             return -1
-        mode = "%s:%s" % (vcf, ac_dc)
+        mode = f"{vcf}:{ac_dc}"
         com_str = "CONF:%s" % mode
         self._visainstrument.write(com_str)
         sleep(0.1)
         return self.get_measurement_mode()
 
-    def set_range_resolution(self,new_range,new_res):
+    def set_range_resolution(self, new_range, new_res):
         new_range = float(new_range)
         new_res = float(new_res)
         mode = self.get_measurement_mode()
-        com_str = "CONF:%s %f,%f" % (mode, new_range, new_res)
+        com_str = f"CONF:{mode} {new_range:f},{new_res:f}"
         self._visainstrument.write(com_str)
         sleep(0.1)
-        return self.get_range(),self.get_resolution()
+        return self.get_range(), self.get_resolution()
 
     def get_NPLC(self):
         mode = self.get_measurement_mode()
@@ -173,16 +177,22 @@ class HP_34401A(Instrument):
         res_str = self._visainstrument.read()
         return float(res_str)
 
-    def set_NPLC(self, plc = 10):  # number of power line cycles, default is 10
+    def set_NPLC(self, plc=10):  # number of power line cycles, default is 10
         plc = float(plc)
-        if (plc != 100) and (plc != 10) and (plc != 1) and (plc != 0.2) and (plc != 0.02):
+        if (
+            (plc != 100)
+            and (plc != 10)
+            and (plc != 1)
+            and (plc != 0.2)
+            and (plc != 0.02)
+        ):
             print >> sys.stderr, "HP_34401A: NPLC can only be 1, 10 or 100"
             return -1
         mode = self.get_measurement_mode()
         if (mode != "CURR") and (mode != "VOLT"):
             print >> sys.stderr, "HP_34401A: NPLC not defined"
             return -1
-        com_str = "%s:NPLCycles %f" % (mode, plc)
+        com_str = f"{mode}:NPLCycles {plc:f}"
         self._visainstrument.write(com_str)
         sleep(0.05)
         return self.get_NPLC()
@@ -194,7 +204,7 @@ class HP_34401A(Instrument):
         res_str = self._visainstrument.read()
         return int(res_str)
 
-    def set_autorange(self, autoran = 0):
+    def set_autorange(self, autoran=0):
         autoran = int(bool(autoran))
         mode = self.get_measurement_mode()
         com_str = "%s:RANGe:AUTO %i" % (mode, autoran)
@@ -235,4 +245,3 @@ class HP_34401A(Instrument):
     print hp_mm.measure()
 
     print hp_mm.get_measurement_mode() """
-

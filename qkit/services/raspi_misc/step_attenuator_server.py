@@ -23,6 +23,7 @@
 
 
 import RPi.GPIO as GPIO
+
 GPIO.setmode(GPIO.BOARD)   #use RPi.GPIO layout
 
 #P = [19,   21, 23, 22, 24, 26] #rpi 2 #GPIO 10,9,11,25,8,7
@@ -39,6 +40,7 @@ try:
     import SocketServer
 except ImportError:
     import socketserver as SocketServer
+
 from threading import Thread
 from time import sleep
 

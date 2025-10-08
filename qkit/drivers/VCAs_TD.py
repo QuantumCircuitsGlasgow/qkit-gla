@@ -18,40 +18,97 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
 import zerorpc
+
+from qkit.core.instrument_base import Instrument
 
 
 class VCAs_TD(Instrument):
     """
     Wrapper for the VCA that allows to set the attenuation without knowing the underlying DAC mechanisms.
     """
+
     def __init__(self, name, address="tcp://10.22.197.143:4242"):
         """
         inits the VCA (virtual instrument)
         :param name: qkit instrument name
         :param address: IP-address of Raspberry-Pi controlling the VCAs
         """
-        Instrument.__init__(self, name, tags=['virtual'])
+        Instrument.__init__(self, name, tags=["virtual"])
 
-
-        self.add_parameter('attenuation_i_manip', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=0,
-                           maxval=20, offset=True)
-        self.add_parameter('attenuation_q_manip', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=0,
-                           maxval=20, offset=True)
-        self.add_parameter('attenuation_i_readout', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=0,
-                           maxval=20, offset=True) 
-        self.add_parameter('attenuation_q_readout', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=0,
-                           maxval=20, offset=True)
-        self.add_parameter('attenuation_rf_readout', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=0,
-                           maxval=30, offset=True)
-        self.add_parameter('attenuation_rf_manip', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=0,
-                           maxval=30, offset=True)
-        self.add_parameter('amplification_i_return', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=-20,
-                           maxval=33, offset=True)
-        self.add_parameter('amplification_q_return', type=float, flags=Instrument.FLAG_SET|Instrument.FLAG_SOFTGET, units='dB', minval=-20,
-                           maxval=33, offset=True)                                                               
-        self._address=address         
+        self.add_parameter(
+            "attenuation_i_manip",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=0,
+            maxval=20,
+            offset=True,
+        )
+        self.add_parameter(
+            "attenuation_q_manip",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=0,
+            maxval=20,
+            offset=True,
+        )
+        self.add_parameter(
+            "attenuation_i_readout",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=0,
+            maxval=20,
+            offset=True,
+        )
+        self.add_parameter(
+            "attenuation_q_readout",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=0,
+            maxval=20,
+            offset=True,
+        )
+        self.add_parameter(
+            "attenuation_rf_readout",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=0,
+            maxval=30,
+            offset=True,
+        )
+        self.add_parameter(
+            "attenuation_rf_manip",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=0,
+            maxval=30,
+            offset=True,
+        )
+        self.add_parameter(
+            "amplification_i_return",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=-20,
+            maxval=33,
+            offset=True,
+        )
+        self.add_parameter(
+            "amplification_q_return",
+            type=float,
+            flags=Instrument.FLAG_SET | Instrument.FLAG_SOFTGET,
+            units="dB",
+            minval=-20,
+            maxval=33,
+            offset=True,
+        )
+        self._address = address
 
         self._dac = zerorpc.Client()
 
@@ -78,7 +135,7 @@ class VCAs_TD(Instrument):
         """
         self._dac.connect(self._address)
         self._dac.SetBBAtt("readout", "i", att)
-        
+
     def do_set_attenuation_q_readout(self, att):
         """
         sets the attenuation of the vca for the Q component of the readout signal after AWG
@@ -110,7 +167,7 @@ class VCAs_TD(Instrument):
         """
         self._dac.connect(self._address)
         self._dac.SetRXGain("inphase", amp)
-    
+
     def do_set_amplification_q_return(self, amp):
         """
         sets the amplification or attenuation of the vca for the Q-signal after cryo and Mixer, before detection with ADC. The device can attenuate and amplify!
@@ -118,4 +175,3 @@ class VCAs_TD(Instrument):
         """
         self._dac.connect(self._address)
         self._dac.SetRXGain("quadrature", amp)
-   

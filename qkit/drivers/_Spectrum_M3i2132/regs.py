@@ -1,4 +1,4 @@
-class regs():
+class regs:
     # ***********************************************************************
     #
     # regs.h                                          (c) Spectrum GmbH, 2006
@@ -11,25 +11,21 @@ class regs():
     #
     # ***********************************************************************
 
-
-
     # ***********************************************************************
     # macros for kilo, Mega or Giga as standard version or binary (_B) (2^x)
     # ***********************************************************************
 
-    #KILO = (k)     ((uint64) 1000 * k)
-    #MEGA = (m)     ((uint64) 1000 * 1000 * m)
-    #GIGA = (g)     ((uint64) 1000 * 1000 * 1000 * g)
-    #KILO_B = (k)   ((uint64) 1024 * k)
-    #MEGA_B = (m)   ((uint64) 1024 * 1024 * m)
-    #GIGA_B = (g)   ((uint64) 1024 * 1024 * 1024 * g)
+    # KILO = (k)     ((uint64) 1000 * k)
+    # MEGA = (m)     ((uint64) 1000 * 1000 * m)
+    # GIGA = (g)     ((uint64) 1000 * 1000 * 1000 * g)
+    # KILO_B = (k)   ((uint64) 1024 * k)
+    # MEGA_B = (m)   ((uint64) 1024 * 1024 * m)
+    # GIGA_B = (g)   ((uint64) 1024 * 1024 * 1024 * g)
 
     # #Self created!!!
     SPCM_BUF_DATA = 1000
     SPCM_DIR_PCTOCARD = 0
     SPCM_DIR_CARDTOPC = 1
-
-
 
     # ***********************************************************************
     # card types
@@ -72,14 +68,13 @@ class regs():
     TYP_TRS582 = 0x00001500
     TYP_PCI258 = 0x00001600
 
-
     # ------ series and familiy identifiers -----
-    TYP_SERIESMASK = 0x00FF0000     # the series (= type of base card), e.g. MI.xxxx
-    TYP_VERSIONMASK = 0x0000FFFF     # the version, e.g. XX.3012
-    TYP_FAMILYMASK = 0x0000FF00     # the family, e.g. XX.30xx
-    TYP_TYPEMASK = 0x000000FF     # the type, e.g. XX.xx12
-    TYP_SPEEDMASK = 0x000000F0     # the speed grade, e.g. XX.xx1x
-    TYP_CHMASK = 0x0000000F     # the channel/modules, e.g. XX.xxx2
+    TYP_SERIESMASK = 0x00FF0000  # the series (= type of base card), e.g. MI.xxxx
+    TYP_VERSIONMASK = 0x0000FFFF  # the version, e.g. XX.3012
+    TYP_FAMILYMASK = 0x0000FF00  # the family, e.g. XX.30xx
+    TYP_TYPEMASK = 0x000000FF  # the type, e.g. XX.xx12
+    TYP_SPEEDMASK = 0x000000F0  # the speed grade, e.g. XX.xx1x
+    TYP_CHMASK = 0x0000000F  # the channel/modules, e.g. XX.xxx2
 
     TYP_MISERIES = 0x00000000
     TYP_MCSERIES = 0x00010000
@@ -88,8 +83,6 @@ class regs():
     TYP_M2IEXPSERIES = 0x00040000
     TYP_M3ISERIES = 0x00050000
     TYP_M3IEXPSERIES = 0x00060000
-
-
 
     # ----- MI.20xx, MC.20xx, MX.20xx -----
     TYP_MI2020 = 0x00002020
@@ -121,16 +114,15 @@ class regs():
     TYP_MX2030 = 0x00022030
 
     # ----- M3i.21xx, M3i.21xx-Exp (8 bit A/D) -----
-    TYP_M3I2120 = 0x00052120     # 1x500M
-    TYP_M3I2122 = 0x00052122     # 1x500M & 2x250M
-    TYP_M3I2130 = 0x00052130     # 1x1G
-    TYP_M3I2132 = 0x00052132     # 1x1G & 2x500M
+    TYP_M3I2120 = 0x00052120  # 1x500M
+    TYP_M3I2122 = 0x00052122  # 1x500M & 2x250M
+    TYP_M3I2130 = 0x00052130  # 1x1G
+    TYP_M3I2132 = 0x00052132  # 1x1G & 2x500M
 
-    TYP_M3I2120EXP = 0x00062120     # 1x500M
-    TYP_M3I2122EXP = 0x00062122     # 1x500M & 2x250M
-    TYP_M3I2130EXP = 0x00062130     # 1x1G
-    TYP_M3I2132EXP = 0x00062132     # 1x1G & 2x500M
-
+    TYP_M3I2120EXP = 0x00062120  # 1x500M
+    TYP_M3I2122EXP = 0x00062122  # 1x500M & 2x250M
+    TYP_M3I2130EXP = 0x00062130  # 1x1G
+    TYP_M3I2132EXP = 0x00062132  # 1x1G & 2x500M
 
     # ----- MI.30xx, MC.30xx, MX.30xx -----
     TYP_MI3010 = 0x00003010
@@ -213,8 +205,6 @@ class regs():
     TYP_MX3022 = 0x00023022
     TYP_MX3031 = 0x00023031
 
-
-
     # ----- MI.31xx, MC.31xx, MX.31xx -----
     TYP_MI3110 = 0x00003110
     TYP_MI3111 = 0x00003111
@@ -264,20 +254,16 @@ class regs():
     TYP_MX3130 = 0x00023130
     TYP_MX3131 = 0x00023131
 
-
-
     # ----- M3i.32xx, M3i.32xx-Exp (12 bit A/D) -----
-    TYP_M3I3220 = 0x00053220     # 1x250M
-    TYP_M3I3221 = 0x00053221     # 2x250M
-    TYP_M3I3240 = 0x00053240     # 1x500M
-    TYP_M3I3242 = 0x00053242     # 1x500M & 2x250M
+    TYP_M3I3220 = 0x00053220  # 1x250M
+    TYP_M3I3221 = 0x00053221  # 2x250M
+    TYP_M3I3240 = 0x00053240  # 1x500M
+    TYP_M3I3242 = 0x00053242  # 1x500M & 2x250M
 
-    TYP_M3I3220EXP = 0x00063220     # 1x250M
-    TYP_M3I3221EXP = 0x00063221     # 2x250M
-    TYP_M3I3240EXP = 0x00063240     # 1x500M
-    TYP_M3I3242EXP = 0x00063242     # 1x500M & 2x250M
-
-
+    TYP_M3I3220EXP = 0x00063220  # 1x250M
+    TYP_M3I3221EXP = 0x00063221  # 2x250M
+    TYP_M3I3240EXP = 0x00063240  # 1x500M
+    TYP_M3I3242EXP = 0x00063242  # 1x500M & 2x250M
 
     # ----- MI.40xx, MC.40xx, MX.40xx -----
     TYP_MI4020 = 0x00004020
@@ -317,23 +303,20 @@ class regs():
     TYP_MX4030 = 0x00024030
     TYP_MX4031 = 0x00024031
 
-
-
     # ----- M3i.41xx, M3i.41xx-Exp (14 bit A/D) -----
-    TYP_M3I4110 = 0x00054110     # 1x100M
-    TYP_M3I4111 = 0x00054111     # 2x100M
-    TYP_M3I4120 = 0x00054120     # 1x250M
-    TYP_M3I4121 = 0x00054121     # 2x250M
-    TYP_M3I4140 = 0x00054140     # 1x400M
-    TYP_M3I4142 = 0x00054142     # 1x400M & 2x250M
+    TYP_M3I4110 = 0x00054110  # 1x100M
+    TYP_M3I4111 = 0x00054111  # 2x100M
+    TYP_M3I4120 = 0x00054120  # 1x250M
+    TYP_M3I4121 = 0x00054121  # 2x250M
+    TYP_M3I4140 = 0x00054140  # 1x400M
+    TYP_M3I4142 = 0x00054142  # 1x400M & 2x250M
 
-    TYP_M3I4110EXP = 0x00064110     # 1x100M
-    TYP_M3I4111EXP = 0x00064111     # 2x100M
-    TYP_M3I4120EXP = 0x00064120     # 1x250M
-    TYP_M3I4121EXP = 0x00064121     # 2x250M
-    TYP_M3I4140EXP = 0x00064140     # 1x400M
-    TYP_M3I4142EXP = 0x00064142     # 1x400M & 2x250M
-
+    TYP_M3I4110EXP = 0x00064110  # 1x100M
+    TYP_M3I4111EXP = 0x00064111  # 2x100M
+    TYP_M3I4120EXP = 0x00064120  # 1x250M
+    TYP_M3I4121EXP = 0x00064121  # 2x250M
+    TYP_M3I4140EXP = 0x00064140  # 1x400M
+    TYP_M3I4142EXP = 0x00064142  # 1x400M & 2x250M
 
     # ----- MI.45xx, MC.45xx, MX.45xx -----
     TYP_MI4520 = 0x00004520
@@ -360,8 +343,6 @@ class regs():
     TYP_MX4520 = 0x00024520
     TYP_MX4530 = 0x00024530
     TYP_MX4540 = 0x00024540
-
-
 
     # ----- MI.46xx, MC.46xx, MX.46xx -----
     TYP_MI4620 = 0x00004620
@@ -425,8 +406,6 @@ class regs():
     TYP_MX4650 = 0x00024650
     TYP_MX4651 = 0x00024651
 
-
-
     # ----- MI.47xx, MC.47xx, MX.47xx -----
     TYP_MI4710 = 0x00004710
     TYP_MI4711 = 0x00004711
@@ -466,8 +445,6 @@ class regs():
     TYP_MX4720 = 0x00024720
     TYP_MX4730 = 0x00024730
 
-
-
     # ----- M3i.48xx, M3i.48xx-Exp (16 bit A/D) -----
     TYP_M3I4830 = 0x00054830
     TYP_M3I4831 = 0x00054831
@@ -482,8 +459,6 @@ class regs():
     TYP_M3I4841EXP = 0x00064841
     TYP_M3I4860EXP = 0x00064860
     TYP_M3I4861EXP = 0x00064861
-
-
 
     # ----- MI.60xx, MC.60xx, MX.60xx -----
     TYP_MI6010 = 0x00006010
@@ -532,8 +507,6 @@ class regs():
     TYP_MX6030 = 0x00026030
     TYP_MX6033 = 0x00026033
 
-
-
     # ----- MI.61xx, MC.61xx, MX.61xx -----
     TYP_MI6105 = 0x00006105
     TYP_MI6110 = 0x00006110
@@ -551,8 +524,6 @@ class regs():
     TYP_MC6111 = 0x00016111
 
     TYP_MX6110 = 0x00026110
-
-
 
     # ----- MI.70xx, MC.70xx, MX.70xx -----
     TYP_MI7005 = 0x00007005
@@ -583,8 +554,6 @@ class regs():
     TYP_MX7010 = 0x00027010
     TYP_MX7011 = 0x00027011
 
-
-
     # ----- MI.72xx, MC.72xx, MX.72xx -----
     TYP_MI7210 = 0x00007210
     TYP_MI7211 = 0x00007211
@@ -609,13 +578,9 @@ class regs():
     TYP_MX7210 = 0x00027210
     TYP_MX7220 = 0x00027220
 
-
-
-
     # ***********************************************************************
     # software registers
     # ***********************************************************************
-
 
     # ***** PCI Features Bits (MI/MC/MX and prior cards) *********
     PCIBIT_MULTI = 0x00000001
@@ -632,38 +597,36 @@ class regs():
     PCIBIT_STARHUB = 0x00000800
     PCIBIT_CA = 0x00001000
     PCIBIT_XIO = 0x00002000
-    PCIBIT_AMPLIFIER = 			0x00004000
-    PCIBIT_DIFFMODE = 				0x00008000
+    PCIBIT_AMPLIFIER = 0x00004000
+    PCIBIT_DIFFMODE = 0x00008000
 
-    PCIBIT_ELISA = 				0x10000000
-
+    PCIBIT_ELISA = 0x10000000
 
     # ***** PCI features starting with M2i card series *****
-    SPCM_FEAT_MULTI = 0x00000001      # multiple recording
-    SPCM_FEAT_GATE = 0x00000002      # gated sampling
-    SPCM_FEAT_DIGITAL = 0x00000004      # additional synchronous digital inputs or outputs
-    SPCM_FEAT_TIMESTAMP = 0x00000008      # timestamp
-    SPCM_FEAT_STARHUB5 = 0x00000020      # starhub for 5 cards installed (M2i + M2i-Exp)
-    SPCM_FEAT_STARHUB4 = 0x00000020      # starhub for 4 cards installed (M3i + M3i-Exp)
-    SPCM_FEAT_STARHUB16 = 0x00000040      # starhub for 16 cards installed
-    SPCM_FEAT_STARHUB8 = 0x00000040      # starhub for 8 cards installed (M3i + M3i-Exp)
-    SPCM_FEAT_ABA = 0x00000080      # ABA mode installed
-    SPCM_FEAT_BASEXIO = 0x00000100      # extra I/O on base card installed
-    SPCM_FEAT_AMPLIFIER_10V = 		0x00000200      # external amplifier for 60/61
-    SPCM_FEAT_STARHUBSYSMASTER = 0x00000400      # system starhub master installed
-    SPCM_FEAT_DIFFMODE = 0x00000800      # Differential mode installed
-    SPCM_FEAT_EXTFW_AVERAGE = 0x00010000      # extended firmware : hardware averaging installed
-    SPCM_FEAT_CUSTOMMOD_MASK = 0xF0000000      # mask for custom modification code, meaning of code depends on type and customer
-
+    SPCM_FEAT_MULTI = 0x00000001  # multiple recording
+    SPCM_FEAT_GATE = 0x00000002  # gated sampling
+    SPCM_FEAT_DIGITAL = 0x00000004  # additional synchronous digital inputs or outputs
+    SPCM_FEAT_TIMESTAMP = 0x00000008  # timestamp
+    SPCM_FEAT_STARHUB5 = 0x00000020  # starhub for 5 cards installed (M2i + M2i-Exp)
+    SPCM_FEAT_STARHUB4 = 0x00000020  # starhub for 4 cards installed (M3i + M3i-Exp)
+    SPCM_FEAT_STARHUB16 = 0x00000040  # starhub for 16 cards installed
+    SPCM_FEAT_STARHUB8 = 0x00000040  # starhub for 8 cards installed (M3i + M3i-Exp)
+    SPCM_FEAT_ABA = 0x00000080  # ABA mode installed
+    SPCM_FEAT_BASEXIO = 0x00000100  # extra I/O on base card installed
+    SPCM_FEAT_AMPLIFIER_10V = 0x00000200  # external amplifier for 60/61
+    SPCM_FEAT_STARHUBSYSMASTER = 0x00000400  # system starhub master installed
+    SPCM_FEAT_DIFFMODE = 0x00000800  # Differential mode installed
+    SPCM_FEAT_EXTFW_AVERAGE = (
+        0x00010000  # extended firmware : hardware averaging installed
+    )
+    SPCM_FEAT_CUSTOMMOD_MASK = 0xF0000000  # mask for custom modification code, meaning of code depends on type and customer
 
     # ***** Error Request *************
     ERRORTEXTLEN = 200
     SPC_LASTERRORTEXT = 999996
     SPC_LASTERRORVALUE = 999997
     SPC_LASTERRORREG = 999998
-    SPC_LASTERRORCODE = 999999     # Reading this reset the internal error-memory.
-
-
+    SPC_LASTERRORCODE = 999999  # Reading this reset the internal error-memory.
 
     # ***** Register and Command Structure
     SPC_COMMAND = 0
@@ -716,76 +679,80 @@ class regs():
     SPC_TRIGGER = 10
     SPC_READY = 20
 
-
-
     # commands for M2 cards
-    SPC_M2CMD = 100                # write a command
-    M2CMD_CARD_RESET = 0x00000001		# hardware reset
-    M2CMD_CARD_WRITESETUP = 	    0x00000002	# write setup only
-    M2CMD_CARD_START = 			0x00000004		# start of card (including writesetup)  
-    M2CMD_CARD_ENABLETRIGGER = 	0x00000008		# enable trigger engine
-    M2CMD_CARD_FORCETRIGGER = 		0x00000010		# force trigger
-    M2CMD_CARD_DISABLETRIGGER = 	0x00000020		# disable trigger engine again (multi or gate)
-    M2CMD_CARD_STOP = 				0x00000040		# stop run
-    M2CMD_CARD_FLUSHFIFO = 		0x00000080		# flush fifos to memory
-    M2CMD_CARD_INVALIDATEDATA = 0x00000100     # current data in memory is invalidated, next data transfer start will wait until new data is available
+    SPC_M2CMD = 100  # write a command
+    M2CMD_CARD_RESET = 0x00000001  # hardware reset
+    M2CMD_CARD_WRITESETUP = 0x00000002  # write setup only
+    M2CMD_CARD_START = 0x00000004  # start of card (including writesetup)
+    M2CMD_CARD_ENABLETRIGGER = 0x00000008  # enable trigger engine
+    M2CMD_CARD_FORCETRIGGER = 0x00000010  # force trigger
+    M2CMD_CARD_DISABLETRIGGER = (
+        0x00000020  # disable trigger engine again (multi or gate)
+    )
+    M2CMD_CARD_STOP = 0x00000040  # stop run
+    M2CMD_CARD_FLUSHFIFO = 0x00000080  # flush fifos to memory
+    M2CMD_CARD_INVALIDATEDATA = 0x00000100  # current data in memory is invalidated, next data transfer start will wait until new data is available
 
-    M2CMD_ALL_STOP = 0x00440060     # stops card and all running transfers
+    M2CMD_ALL_STOP = 0x00440060  # stops card and all running transfers
 
-    M2CMD_CARD_WAITPREFULL = 0x00001000		# wait until pretrigger is fu
-    M2CMD_CARD_WAITTRIGGER = 		0x00002000		# wait for trigger recognition
-    M2CMD_CARD_WAITREADY = 		0x00004000		# wait for card ready
+    M2CMD_CARD_WAITPREFULL = 0x00001000  # wait until pretrigger is fu
+    M2CMD_CARD_WAITTRIGGER = 0x00002000  # wait for trigger recognition
+    M2CMD_CARD_WAITREADY = 0x00004000  # wait for card ready
 
-    M2CMD_DATA_STARTDMA = 	        0x00010000		# start of DMA transfer for data
-    M2CMD_DATA_WAITDMA = 		    0x00020000		# wait for end of data transfer / next block ready
-    M2CMD_DATA_STOPDMA = 0x00040000     # abort the data transfer
-    M2CMD_DATA_POLL = 0x00080000     # transfer data using single access and polling
+    M2CMD_DATA_STARTDMA = 0x00010000  # start of DMA transfer for data
+    M2CMD_DATA_WAITDMA = 0x00020000  # wait for end of data transfer / next block ready
+    M2CMD_DATA_STOPDMA = 0x00040000  # abort the data transfer
+    M2CMD_DATA_POLL = 0x00080000  # transfer data using single access and polling
 
-    M2CMD_EXTRA_STARTDMA = 0x00100000		# start of DMA transfer for extra (ABA + timestamp) data
-    M2CMD_EXTRA_WAITDMA = 0x00200000		# wait for end of extra (ABA + timestamp) data transfer / next block ready
-    M2CMD_EXTRA_STOPDMA = 0x00400000     # abort the extra (ABA + timestamp) data transfer
-    M2CMD_EXTRA_POLL = 0x00800000     # transfer data using single access and polling
-
-
+    M2CMD_EXTRA_STARTDMA = (
+        0x00100000  # start of DMA transfer for extra (ABA + timestamp) data
+    )
+    M2CMD_EXTRA_WAITDMA = 0x00200000  # wait for end of extra (ABA + timestamp) data transfer / next block ready
+    M2CMD_EXTRA_STOPDMA = 0x00400000  # abort the extra (ABA + timestamp) data transfer
+    M2CMD_EXTRA_POLL = 0x00800000  # transfer data using single access and polling
 
     # status for M2 cards (bitmask)
-    SPC_M2STATUS = 110                # read the current status
-    M2STAT_NONE = 0x00000000     # status empty
-    M2STAT_CARD_PRETRIGGER = 		0x00000001		# pretrigger area is fu
-    M2STAT_CARD_TRIGGER = 			0x00000002		# trigger recognized
-    M2STAT_CARD_READY = 			0x00000004		# card is ready, run finished
+    SPC_M2STATUS = 110  # read the current status
+    M2STAT_NONE = 0x00000000  # status empty
+    M2STAT_CARD_PRETRIGGER = 0x00000001  # pretrigger area is fu
+    M2STAT_CARD_TRIGGER = 0x00000002  # trigger recognized
+    M2STAT_CARD_READY = 0x00000004  # card is ready, run finished
 
-    M2STAT_DATA_BLOCKREADY = 		0x00000100		# next data block is available
-    M2STAT_DATA_END = 0x00000200     # data transfer has ended
-    M2STAT_DATA_OVERRUN = 0x00000400     # FIFO overrun (record) or underrun (replay)
-    M2STAT_DATA_ERROR = 0x00000800     # internal error
+    M2STAT_DATA_BLOCKREADY = 0x00000100  # next data block is available
+    M2STAT_DATA_END = 0x00000200  # data transfer has ended
+    M2STAT_DATA_OVERRUN = 0x00000400  # FIFO overrun (record) or underrun (replay)
+    M2STAT_DATA_ERROR = 0x00000800  # internal error
 
-    M2STAT_EXTRA_BLOCKREADY = 		0x00001000		# next extra data (ABA and timestamp) block is available
-    M2STAT_EXTRA_END = 0x00002000     # extra data (ABA and timestamp) transfer has ended
-    M2STAT_EXTRA_OVERRUN = 0x00004000     # FIFO overrun
-    M2STAT_EXTRA_ERROR = 0x00008000     # internal error
+    M2STAT_EXTRA_BLOCKREADY = (
+        0x00001000  # next extra data (ABA and timestamp) block is available
+    )
+    M2STAT_EXTRA_END = 0x00002000  # extra data (ABA and timestamp) transfer has ended
+    M2STAT_EXTRA_OVERRUN = 0x00004000  # FIFO overrun
+    M2STAT_EXTRA_ERROR = 0x00008000  # internal error
 
-    M2STAT_INTERNALMASK = 0xff000000     # mask for internal status signals
+    M2STAT_INTERNALMASK = 0xFF000000  # mask for internal status signals
     M2STAT_INTERNAL_SYSLOCK = 0x02000000
 
-
-
     # buffer control registers for samples data
-    SPC_DATA_AVAIL_USER_LEN = 200                # number of bytes available for user (valid data if READ, free buffer if WRITE)
-    SPC_DATA_AVAIL_USER_POS = 201                # the current byte position where the available user data starts
-    SPC_DATA_AVAIL_CARD_LEN = 202                # number of bytes available for card (free buffer if READ, filled data if WRITE)
-    SPC_DATA_OUTBUFSIZE = 209                # output buffer size in samples
+    SPC_DATA_AVAIL_USER_LEN = 200  # number of bytes available for user (valid data if READ, free buffer if WRITE)
+    SPC_DATA_AVAIL_USER_POS = (
+        201  # the current byte position where the available user data starts
+    )
+    SPC_DATA_AVAIL_CARD_LEN = 202  # number of bytes available for card (free buffer if READ, filled data if WRITE)
+    SPC_DATA_OUTBUFSIZE = 209  # output buffer size in samples
 
     # buffer control registers for extra data (ABA slow data, timestamps)
-    SPC_ABA_AVAIL_USER_LEN = 210                # number of bytes available for user (valid data if READ, free buffer if WRITE)
-    SPC_ABA_AVAIL_USER_POS = 211                # the current byte position where the available user data starts
-    SPC_ABA_AVAIL_CARD_LEN = 212                # number of bytes available for card (free buffer if READ, filled data if WRITE)
+    SPC_ABA_AVAIL_USER_LEN = 210  # number of bytes available for user (valid data if READ, free buffer if WRITE)
+    SPC_ABA_AVAIL_USER_POS = (
+        211  # the current byte position where the available user data starts
+    )
+    SPC_ABA_AVAIL_CARD_LEN = 212  # number of bytes available for card (free buffer if READ, filled data if WRITE)
 
-    SPC_TS_AVAIL_USER_LEN = 220                # number of bytes available for user (valid data if READ, free buffer if WRITE)
-    SPC_TS_AVAIL_USER_POS = 221                # the current byte position where the available user data starts
-    SPC_TS_AVAIL_CARD_LEN = 222                # number of bytes available for card (free buffer if READ, filled data if WRITE)
-
-
+    SPC_TS_AVAIL_USER_LEN = 220  # number of bytes available for user (valid data if READ, free buffer if WRITE)
+    SPC_TS_AVAIL_USER_POS = (
+        221  # the current byte position where the available user data starts
+    )
+    SPC_TS_AVAIL_CARD_LEN = 222  # number of bytes available for card (free buffer if READ, filled data if WRITE)
 
     # Installation
     SPC_VERSION = 1000
@@ -871,7 +838,9 @@ class regs():
     SPCM_AI_TERM = 0x00000001  # input termination available
     SPCM_AI_SE = 0x00000002  # single-ended mode available
     SPCM_AI_DIFF = 0x00000004  # differential mode available
-    SPCM_AI_OFFSPERCENT = 0x00000008  # offset programming is done in percent of input range
+    SPCM_AI_OFFSPERCENT = (
+        0x00000008  # offset programming is done in percent of input range
+    )
     SPCM_AI_OFFSMV = 0x00000010  # offset programming is done in mV absolut
     SPCM_AI_OVERRANGEDETECT = 0x00000020  # overrange detection is programmable
     SPCM_AI_DCCOUPLING = 0x00000040  # DC coupling available
@@ -879,7 +848,9 @@ class regs():
     SPCM_AI_LOWPASS = 0x00000100  # selecteable low pass
     SPCM_AI_AUTOCALOFFS = 0x00001000  # automatic offset calibration in hardware
     SPCM_AI_AUTOCALGAIN = 0x00002000  # automatic gain calibration in hardware
-    SPCM_AI_AUTOCALOFFSNOIN = 0x00004000  # automatic offset calibration with open inputs
+    SPCM_AI_AUTOCALOFFSNOIN = (
+        0x00004000  # automatic offset calibration with open inputs
+    )
     SPCM_AI_INDIVPULSEWIDTH = 0x00100000  # individual pulsewidth per channel available
 
     SPC_READAOFEATURES = 3102
@@ -902,13 +873,15 @@ class regs():
     SPCM_DO_SE = 0x00000002  # single-ended mode available
     SPCM_DO_DIFF = 0x00000004  # differential mode available
     SPCM_DO_PROGSTOPLEVEL = 0x00000008  # programmable stop level available
-    SPCM_DO_PROGOUTLEVELS = 0x00000010  # programmable output levels (low + high) available
+    SPCM_DO_PROGOUTLEVELS = (
+        0x00000010  # programmable output levels (low + high) available
+    )
     SPCM_DO_ENABLEMASK = 0x00000020  # individual enable mask for each output channe
     SPCM_DO_IOCHANNEL = 0x00200000  # connected with DI channe
 
     SPC_READCHGROUPING = 3110
-    SPC_READAIPATHCOUNT = 3120       # number of available analog input paths
-    SPC_READAIPATH = 3121       # the current path for which all the settings are read
+    SPC_READAIPATHCOUNT = 3120  # number of available analog input paths
+    SPC_READAIPATH = 3121  # the current path for which all the settings are read
 
     SPC_READRANGECH0_0 = 3200
     SPC_READRANGECH0_1 = 3201
@@ -950,21 +923,24 @@ class regs():
     SPC_PCICOUNTER = 9000
     SPC_BUFFERPOS = 9010
 
-
-    SPC_CARDMODE = 9500       # card modes as listed below
-    SPC_AVAILCARDMODES = 9501       # list with available card modes
+    SPC_CARDMODE = 9500  # card modes as listed below
+    SPC_AVAILCARDMODES = 9501  # list with available card modes
 
     # card modes
     SPC_REC_STD_SINGLE = 0x00000001  # singleshot recording to memory
     SPC_REC_STD_MULTI = 0x00000002  # multiple records to memory on each trigger event
     SPC_REC_STD_GATE = 0x00000004  # gated recording to memory on gate signa
-    SPC_REC_STD_ABA = 0x00000008  # ABA: A slowly to extra FIFO, B to memory on each trigger event
+    SPC_REC_STD_ABA = (
+        0x00000008  # ABA: A slowly to extra FIFO, B to memory on each trigger event
+    )
     SPC_REC_STD_AVERAGE = 0x00010000  # multiple records summed to average memory on each trigger event -> stored in on-board memory
 
     SPC_REC_FIFO_SINGLE = 0x00000010  # singleshot to FIFO on trigger event
     SPC_REC_FIFO_MULTI = 0x00000020  # multiple records to FIFO on each trigger event
     SPC_REC_FIFO_GATE = 0x00000040  # gated sampling to FIFO on gate signa
-    SPC_REC_FIFO_ABA = 0x00000080  # ABA: A slowly to extra FIFO, B to FIFO on each trigger event
+    SPC_REC_FIFO_ABA = (
+        0x00000080  # ABA: A slowly to extra FIFO, B to FIFO on each trigger event
+    )
     SPC_REC_FIFO_AVERAGE = 0x00020000  # multiple records summed to average memory on each trigger event -> streamed to host
 
     SPC_REP_STD_SINGLE = 0x00000100  # single replay from memory on trigger event
@@ -975,11 +951,12 @@ class regs():
     SPC_REP_FIFO_MULTI = 0x00001000  # multiple replay from FIFO on each trigger event
     SPC_REP_FIFO_GATE = 0x00002000  # gated replay from FIFO on gate signa
 
-    SPC_REP_STD_CONTINUOUS = 0x00004000  # continuous replay started by one trigger event
-    SPC_REP_STD_SINGLERESTART = 0x00008000  # single replays on every detected trigger event
-
-
-
+    SPC_REP_STD_CONTINUOUS = (
+        0x00004000  # continuous replay started by one trigger event
+    )
+    SPC_REP_STD_SINGLERESTART = (
+        0x00008000  # single replays on every detected trigger event
+    )
 
     # Memory
     SPC_MEMSIZE = 10000
@@ -999,7 +976,6 @@ class regs():
     SPC_AVAILPOSTTRIGGER_MAX = 10205
     SPC_AVAILPOSTTRIGGER_STEP = 10206
 
-
     SPC_AVAILABADIVIDER_MIN = 10207
     SPC_AVAILABADIVIDER_MAX = 10208
     SPC_AVAILABADIVIDER_STEP = 10209
@@ -1013,7 +989,6 @@ class regs():
     SPC_CHCOUNT = 11001
     SPC_CHMODACOUNT = 11100
     SPC_CHMODBCOUNT = 11101
-
 
     # ----- channel enable flags for A/D and D/A boards (MI/MC/MX series) -----
     #       and all cards on M2i series
@@ -1051,7 +1026,6 @@ class regs():
     CHANNEL31 = 0x80000000
     # CHANNEL32 up to CHANNEL63 are placed in the upper 32 bit of a 64 bit word (M2i only)
 
-
     # ----- old digital i/o settings for 16 bit implementation (MI/MC/MX series)  -----
     CH0_8BITMODE = 65536  # for MI.70xx only
     CH0_16BIT = 1
@@ -1071,8 +1045,6 @@ class regs():
     SPC_CHROUTE1 = 11020
 
     SPC_BITENABLE = 11030
-
-
 
     # ----- Clock Settings -----
     SPC_SAMPLERATE = 20000
@@ -1102,22 +1074,24 @@ class regs():
     EXRANGE_BURST_XL = 32
     EXRANGE_LOW = 64
     EXRANGE_HIGH = 128
-    EXRANGE_LOW_DPS = 256            # digital phase synchronization
+    EXRANGE_LOW_DPS = 256  # digital phase synchronization
     SPC_REFERENCECLOCK = 20140
     REFCLOCK_PXI = -1
 
     # ----- new clock registers starting with M2i cards -----
-    SPC_CLOCKMODE = 20200      # clock mode as listed below
-    SPC_AVAILCLOCKMODES = 20201      # returns all available clock modes
-    SPC_CM_INTPLL = 0x00000001      # use internal PLL
-    SPC_CM_QUARTZ1 = 0x00000002      # use plain quartz1 (with divider)
-    SPC_CM_QUARTZ2 = 0x00000004      # use plain quartz2 (with divider)
-    SPC_CM_EXTERNAL = 0x00000008      # use external clock directly
-    SPC_CM_EXTDIVIDER = 0x00000010      # use external clock with programmed divider
-    SPC_CM_EXTREFCLOCK = 0x00000020      # external reference clock fed in (defined with SPC_REFERENCECLOCK)
-    SPC_CM_PXIREFCLOCK = 0x00000040      # PXI reference clock
-    SPC_CM_SHDIRECT = 0x00000080      # Star-hub direct clock (not synchronised)
-    SPC_CM_QUARTZ2_DIRSYNC = 0x00000100      # use plain quartz2 (with divider) and put the Q2 clock on the star-hub module
+    SPC_CLOCKMODE = 20200  # clock mode as listed below
+    SPC_AVAILCLOCKMODES = 20201  # returns all available clock modes
+    SPC_CM_INTPLL = 0x00000001  # use internal PLL
+    SPC_CM_QUARTZ1 = 0x00000002  # use plain quartz1 (with divider)
+    SPC_CM_QUARTZ2 = 0x00000004  # use plain quartz2 (with divider)
+    SPC_CM_EXTERNAL = 0x00000008  # use external clock directly
+    SPC_CM_EXTDIVIDER = 0x00000010  # use external clock with programmed divider
+    SPC_CM_EXTREFCLOCK = (
+        0x00000020  # external reference clock fed in (defined with SPC_REFERENCECLOCK)
+    )
+    SPC_CM_PXIREFCLOCK = 0x00000040  # PXI reference clock
+    SPC_CM_SHDIRECT = 0x00000080  # Star-hub direct clock (not synchronised)
+    SPC_CM_QUARTZ2_DIRSYNC = 0x00000100  # use plain quartz2 (with divider) and put the Q2 clock on the star-hub module
 
     SPC_CLOCK_READFEATURES = 20205
     SPCM_CKFEAT_TERM = 0x00000001
@@ -1134,16 +1108,18 @@ class regs():
     SPC_BURSTSYSCLOCKMODE = 20210
     SPC_SYNCMASTERSYSCLOCKMODE = 20211
 
-
     # mux definitions for channel routing
     SPC_CHANNELMUXINFO = 20300
     SPCM_MUX_NONE = 0x00000000  # nothing is interlaced
     SPCM_MUX_MUXONMOD = 0x00000001  # data on module is multiplexed, only one channel can have full speed
-    SPCM_MUX_INVERTCLKONMOD = 0x00000002  # two channels on one module run with inverted clock
+    SPCM_MUX_INVERTCLKONMOD = (
+        0x00000002  # two channels on one module run with inverted clock
+    )
     SPCM_MUX_DLY = 0x00000003  # delay cable between modules, one channel can have full interlace speed
-    SPCM_MUX_DLYANDMUXONMOD = 0x00000004  # delay cable between modules and multplexing on module
+    SPCM_MUX_DLYANDMUXONMOD = (
+        0x00000004  # delay cable between modules and multplexing on module
+    )
     SPCM_MUX_MUXBETWEENMODS = 0x00000005  # multiplexed between modules (fastest sampling rate only with one module)
-
 
     # ----- In/Out Range -----
     SPC_OFFS0 = 30000
@@ -1287,7 +1263,6 @@ class regs():
     SPC_110OHMTRIGGER = 30400
     SPC_110OHMCLOCK = 30410
 
-
     AMP_BI200 = 200
     AMP_BI500 = 500
     AMP_BI1000 = 1000
@@ -1299,7 +1274,6 @@ class regs():
     AMP_UNI400 = 100400
     AMP_UNI1000 = 101000
     AMP_UNI2000 = 102000
-
 
     # ----- Trigger Settings -----
     SPC_TRIGGERMODE = 40000
@@ -1406,7 +1380,6 @@ class regs():
     PTO_LINESTAR = 9
     SPC_PXITRGOUT_AVAILABLE = 40301  # bitmap register
 
-
     SPC_PXITRGIN = 40310  # bitmap register
     PTI_OFF = 0
     PTI_LINE0 = 1
@@ -1419,7 +1392,6 @@ class regs():
     PTI_LINE7 = 128
     PTI_LINESTAR = 256
     SPC_PXITRGIN_AVAILABLE = 40311  # bitmap register
-
 
     # new registers of M2i driver
     SPC_TRIG_AVAILORMASK = 40400
@@ -1648,7 +1620,6 @@ class regs():
     SPC_TRIG_CH62_MODE = 40672
     SPC_TRIG_CH63_MODE = 40673
 
-
     SPC_TRIG_AVAILDELAY = 40800
     SPC_TRIG_AVAILDELAY_STEP = 40801
     SPC_TRIG_DELAY = 40810
@@ -1656,7 +1627,7 @@ class regs():
     SPC_SINGLESHOT = 41000
     SPC_OUTONTRIGGER = 41100
     SPC_RESTARTCONT = 41200
-    SPC_SINGLERESTART = 			41300
+    SPC_SINGLERESTART = 41300
 
     SPC_TRIGGERLEVEL = 42000
     SPC_TRIGGERLEVEL0 = 42000
@@ -1768,7 +1739,6 @@ class regs():
     SPC_TRIG_EXT_AVAIL1_MAX = 42346
     SPC_TRIG_EXT_AVAIL1_STEP = 42347
 
-
     SPC_TRIGGERPATTERN = 43000
     SPC_TRIGGERPATTERN0 = 43000
     SPC_TRIGGERPATTERN1 = 43001
@@ -1831,7 +1801,6 @@ class regs():
     TE_BOTH = 10020
     TE_NONE = 10030
 
-
     # ----- Timestamp -----
     CH_TIMESTAMP = 9999
 
@@ -1864,7 +1833,6 @@ class regs():
     SPC_TSCNT_MASK = 0x00000F00
     SPC_TSFEAT_MASK = 0x000F0000
 
-
     SPC_TIMESTAMP_STATUS = 47010
     TS_FIFO_EMPTY = 0
     TS_FIFO_LESSHALF = 1
@@ -1881,8 +1849,6 @@ class regs():
     TS_RESET_POS = 10
     TS_RESET_NEG = 20
 
-
-
     # ----- Extra I/O module -----
     SPC_XIO_DIRECTION = 47100
     XD_CH0_INPUT = 0
@@ -1898,14 +1864,12 @@ class regs():
     SPC_XIO_ANALOGOUT3 = 47123
     SPC_XIO_WRITEDACS = 47130
 
-
-
     # ----- M3i multi purpose lines (X0 and X1) -----
     SPCM_X0_MODE = 47200
     SPCM_X1_MODE = 47201
     SPCM_X0_AVAILMODES = 47210
     SPCM_X1_AVAILMODES = 47211
-    SPCM_XX_ASYNCIO = 47220          # asynchronous in/out register
+    SPCM_XX_ASYNCIO = 47220  # asynchronous in/out register
     SPCM_XMODE_DISABLE = 0x00000000
     SPCM_XMODE_ASYNCIN = 0x00000001  # used as asynchronous input
     SPCM_XMODE_ASYNCOUT = 0x00000002  # used as asynchronous output
@@ -1917,10 +1881,10 @@ class regs():
     SPCM_XMODE_RUNSTATE = 0x00000100  # shows the run state of the card (high = run)
     SPCM_XMODE_ARMSTATE = 0x00000200  # shows the arm state (high = armed for trigger)
     SPCM_XMODE_DIRECTTRIGOUT = 0x00000400  # used as direct trigger output (safe mode)
-    SPCM_XMODE_DIRECTTRIGOUT_LR = 0x00000800  # used as direct trigger output (low re-arm)
+    SPCM_XMODE_DIRECTTRIGOUT_LR = (
+        0x00000800  # used as direct trigger output (low re-arm)
+    )
     SPCM_XMODE_RUNPULSE = 0x00001000  # starts a pulse with RUNSTATE
-
-
 
     # ----- Star-Hub -----
     SPC_STARHUB_CMD = 48000
@@ -1933,7 +1897,6 @@ class regs():
 
     SPC_STARHUB_ROUTE0 = 48100  # Routing Information for Test
     SPC_STARHUB_ROUTE99 = 48199  # ...
-
 
     # Spcm driver (M2i) sync setup registers
     SPC_SYNC_READ_SYNCCOUNT = 48990  # number of sync'd cards
@@ -1955,7 +1918,9 @@ class regs():
     SPC_SYNC_READ_CARDIDX14 = 49014  # ...
     SPC_SYNC_READ_CARDIDX15 = 49015  # ...
 
-    SPC_SYNC_READ_CABLECON0 = 49100  # read cable connection of card at location 0 of sync
+    SPC_SYNC_READ_CABLECON0 = (
+        49100  # read cable connection of card at location 0 of sync
+    )
     SPC_SYNC_READ_CABLECON1 = 49101  # ...
     SPC_SYNC_READ_CABLECON2 = 49102  # ...
     SPC_SYNC_READ_CABLECON3 = 49103  # ...
@@ -1976,7 +1941,6 @@ class regs():
     SPC_SYNC_NOTRIGSYNCMASK = 49210  # trigger disabled for sync (mask)
     SPC_SYNC_CLKMASK = 49220  # clock master (mask)
 
-
     # ----- Gain and Offset Adjust DAC's -----
     SPC_ADJ_START = 50000
 
@@ -1996,7 +1960,7 @@ class regs():
     ADJ_ALL = 0
     ADJ_CURRENT = 1
     ADJ_EXTERNAL = 2
-    ADJ_1MOHM = 	                3
+    ADJ_1MOHM = 3
 
     ADJ_CURRENT_CLOCK = 4
     ADJ_CURRENT_IR = 8
@@ -2008,20 +1972,19 @@ class regs():
     SPC_ADJ_SET = 50030
     SPC_ADJ_FAILMASK = 50040
 
-    SPC_ADJ_CALIBSOURCE = 			50050
-    ADJ_CALSRC_OFF =				0
-    ADJ_CALSRC_GND =			   -1
-    ADJ_CALSRC_GNDOFFS =		   -2
+    SPC_ADJ_CALIBSOURCE = 50050
+    ADJ_CALSRC_OFF = 0
+    ADJ_CALSRC_GND = -1
+    ADJ_CALSRC_GNDOFFS = -2
 
-    SPC_ADJ_CALIBVALUE0 = 			50060
-    SPC_ADJ_CALIBVALUE1 = 			50061
-    SPC_ADJ_CALIBVALUE2 = 			50062
-    SPC_ADJ_CALIBVALUE3 = 			50063
-    SPC_ADJ_CALIBVALUE4 = 			50064
-    SPC_ADJ_CALIBVALUE5 = 			50065
-    SPC_ADJ_CALIBVALUE6 = 			50066
-    SPC_ADJ_CALIBVALUE7 = 			50067
-
+    SPC_ADJ_CALIBVALUE0 = 50060
+    SPC_ADJ_CALIBVALUE1 = 50061
+    SPC_ADJ_CALIBVALUE2 = 50062
+    SPC_ADJ_CALIBVALUE3 = 50063
+    SPC_ADJ_CALIBVALUE4 = 50064
+    SPC_ADJ_CALIBVALUE5 = 50065
+    SPC_ADJ_CALIBVALUE6 = 50066
+    SPC_ADJ_CALIBVALUE7 = 50067
 
     SPC_ADJ_OFFSET0 = 51000
     SPC_ADJ_OFFSET999 = 51999
@@ -2064,50 +2027,43 @@ class regs():
 
     SPC_ADJ_END = 59999
 
-
-
     # ----- FIFO Control -----
-    SPC_FIFO_BUFFERS = 60000          # number of FIFO buffers
-    SPC_FIFO_BUFLEN = 60010          # len of each FIFO buffer
-    SPC_FIFO_BUFCOUNT = 60020          # number of FIFO buffers tranfered until now
-    SPC_FIFO_BUFMAXCNT = 60030          # number of FIFO buffers to be transfered (0=continuous)
-    SPC_FIFO_BUFADRCNT = 60040          # number of FIFO buffers allowed
-    SPC_FIFO_BUFREADY = 60050          # fifo buffer ready register (same as SPC_COMMAND + SPC_FIFO_BUFREADY0...)
-    SPC_FIFO_BUFFILLCNT = 60060          # number of currently filled buffers
-    SPC_FIFO_BUFADR0 = 60100          # adress of FIFO buffer no. 0
-    SPC_FIFO_BUFADR1 = 60101          # ...
-    SPC_FIFO_BUFADR2 = 60102          # ...
-    SPC_FIFO_BUFADR3 = 60103          # ...
-    SPC_FIFO_BUFADR4 = 60104          # ...
-    SPC_FIFO_BUFADR5 = 60105          # ...
-    SPC_FIFO_BUFADR6 = 60106          # ...
-    SPC_FIFO_BUFADR7 = 60107          # ...
-    SPC_FIFO_BUFADR8 = 60108          # ...
-    SPC_FIFO_BUFADR9 = 60109          # ...
-    SPC_FIFO_BUFADR10 = 60110          # ...
-    SPC_FIFO_BUFADR11 = 60111          # ...
-    SPC_FIFO_BUFADR12 = 60112          # ...
-    SPC_FIFO_BUFADR13 = 60113          # ...
-    SPC_FIFO_BUFADR14 = 60114          # ...
-    SPC_FIFO_BUFADR15 = 60115          # ...
-    SPC_FIFO_BUFADR255 = 60355          # last
-
-
+    SPC_FIFO_BUFFERS = 60000  # number of FIFO buffers
+    SPC_FIFO_BUFLEN = 60010  # len of each FIFO buffer
+    SPC_FIFO_BUFCOUNT = 60020  # number of FIFO buffers tranfered until now
+    SPC_FIFO_BUFMAXCNT = 60030  # number of FIFO buffers to be transfered (0=continuous)
+    SPC_FIFO_BUFADRCNT = 60040  # number of FIFO buffers allowed
+    SPC_FIFO_BUFREADY = 60050  # fifo buffer ready register (same as SPC_COMMAND + SPC_FIFO_BUFREADY0...)
+    SPC_FIFO_BUFFILLCNT = 60060  # number of currently filled buffers
+    SPC_FIFO_BUFADR0 = 60100  # adress of FIFO buffer no. 0
+    SPC_FIFO_BUFADR1 = 60101  # ...
+    SPC_FIFO_BUFADR2 = 60102  # ...
+    SPC_FIFO_BUFADR3 = 60103  # ...
+    SPC_FIFO_BUFADR4 = 60104  # ...
+    SPC_FIFO_BUFADR5 = 60105  # ...
+    SPC_FIFO_BUFADR6 = 60106  # ...
+    SPC_FIFO_BUFADR7 = 60107  # ...
+    SPC_FIFO_BUFADR8 = 60108  # ...
+    SPC_FIFO_BUFADR9 = 60109  # ...
+    SPC_FIFO_BUFADR10 = 60110  # ...
+    SPC_FIFO_BUFADR11 = 60111  # ...
+    SPC_FIFO_BUFADR12 = 60112  # ...
+    SPC_FIFO_BUFADR13 = 60113  # ...
+    SPC_FIFO_BUFADR14 = 60114  # ...
+    SPC_FIFO_BUFADR15 = 60115  # ...
+    SPC_FIFO_BUFADR255 = 60355  # last
 
     # ----- Filter -----
     SPC_FILTER = 100000
-    SPC_READNUMFILTERS = 100001         # number of programable filters
-    SPC_FILTERFREQUENCY0 = 100002         # frequency of filter 0 (bypass)
-    SPC_FILTERFREQUENCY1 = 100003         # frequency of filter 1
-    SPC_FILTERFREQUENCY2 = 100004         # frequency of filter 2
-    SPC_FILTERFREQUENCY3 = 100005         # frequency of filter 3
-
+    SPC_READNUMFILTERS = 100001  # number of programable filters
+    SPC_FILTERFREQUENCY0 = 100002  # frequency of filter 0 (bypass)
+    SPC_FILTERFREQUENCY1 = 100003  # frequency of filter 1
+    SPC_FILTERFREQUENCY2 = 100004  # frequency of filter 2
+    SPC_FILTERFREQUENCY3 = 100005  # frequency of filter 3
 
     # ----- Pattern -----
     SPC_PATTERNENABLE = 110000
     SPC_READDIGITAL = 110100
-
-
 
     # ----- Miscellanous -----
     SPC_MISCDAC0 = 200000
@@ -2120,7 +2076,7 @@ class regs():
     SPC_MICXCOMPATIBILITYMODE = 200120
     SPC_TEST_FIFOSPEED = 200121
     SPC_RELOADDEMO = 200122
-    SPC_OVERSAMPLINGFACTOR = 		200123
+    SPC_OVERSAMPLINGFACTOR = 200123
     SPC_GETTHREADHANDLE = 200130
     SPC_GETKERNELHANDLE = 200131
     SPC_XYZMODE = 200200
@@ -2250,11 +2206,6 @@ class regs():
     SPC_SWL_EXTRAINFO = 295143
     SPC_LOGDLLCALLS = 299999
 
-
-
-
-
-
     # ----- PCK400 -----
     SPC_FREQUENCE = 300000
     SPC_DELTAFREQUENCE = 300010
@@ -2264,8 +2215,6 @@ class regs():
     SPC_STOPLEVEL = 300200
     SPC_PINRELAIS = 300210
     SPC_EXTERNLEVEL = 300300
-
-
 
     # ----- PADCO -----
     SPC_COUNTER0 = 310000
@@ -2286,8 +2235,6 @@ class regs():
     CM_NEGEDGE = 8
     CM_HIGHPULSE = 16
     CM_LOWPULSE = 32
-
-
 
     # ----- PAD1616 -----
     SPC_SEQUENCERESET = 320000
@@ -2315,8 +2262,6 @@ class regs():
     SEQ_CH15 = 120
     SEQ_TRIGGER = 128
     SEQ_START = 256
-
-
 
     # ----- Option CA -----
     SPC_CA_MODE = 330000
@@ -2348,8 +2293,6 @@ class regs():
     CAOUT_TRDLY = 10
     CAOUT_INVERT = 16
 
-
-
     # ----- Hardware registers (debug use only) -----
     SPC_REG0x00 = 900000
     SPC_REG0x02 = 900010
@@ -2370,7 +2313,6 @@ class regs():
     ISP_TMS_1 = 1
     ISP_TDO_0 = 0
     ISP_TDO_1 = 2
-
 
     SPC_EE_RWAUTH = 901100
     SPC_EE_REG = 901110

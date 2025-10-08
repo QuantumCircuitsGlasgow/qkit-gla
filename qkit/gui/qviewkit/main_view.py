@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 @author: hannes.rotzinger@kit.edu / 2015, 2016, 2017
          marco.pfirrmann@kit.edu / 2016, 2017
@@ -8,21 +6,22 @@
 
 
 import sys
-import qkit
 
 # support both PyQt4 and 5
 in_pyqt5 = False
 in_pyqt4 = False
 try:
-    from PyQt5 import QtCore
     import PyQt5.QtWidgets as QtGui
+    from PyQt5 import QtCore
+
     in_pyqt5 = True
-except ImportError as e:
+except ImportError:
     pass
 
 if not in_pyqt5:
     try:
         from PyQt4 import QtCore, QtGui
+
         in_pyqt4 = True
     except ImportError:
         print("import of PyQt5 and PyQt4 failed. Install one of those.")
@@ -32,24 +31,31 @@ if not in_pyqt5:
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
+
     def _fromUtf8(s):
         return s
 
+
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_MainWindow(object):
+
+class Ui_MainWindow:
     """Ui_MainWindow class creates the frame of the  h5 file.
 
     The main window features some general interface buttons for file selection
     and live update as well as a interactive display to show and interact
     with the datasets in the populated dataset tree.
     """
+
     def setupUi(self, MainWindow):
         """setupUi creates the main window based on QMainWindow.
 
@@ -69,9 +75,13 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.gridLayout = QtGui.QGridLayout()
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem, 1, 1, 1, 1)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem1 = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem1, 0, 1, 1, 1)
         self.FileButton = QtGui.QPushButton(self.centralwidget)
         self.FileButton.setObjectName(_fromUtf8("FileButton"))

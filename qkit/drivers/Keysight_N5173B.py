@@ -16,45 +16,43 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-#import types
+# import types
 import logging
 
 from qkit import visa
-
-from qkit.core.instrument_base import Instrument
 from qkit.drivers.AbstractMicrowaveSource import AbstractMicrowaveSource
 
 
 class Keysight_N5173B(AbstractMicrowaveSource):
-    '''
+    """
     This is the driver for the Keysight N5173B Signal Genarator
 
     Usage:
     Initialize with
     <name> = instruments.create('<name>', 'Keysight_N5173B', address='<GBIP address>, reset=<bool>')
-    '''
+    """
+
     def __init__(self, name, address, reset=False):
-        '''
+        """
         Initializes the Keysight_N5173B, and communicates with the wrapper.
 
         Input:
             name (string)    : name of the instrument
             address (string) : GPIB address
             reset (bool)     : resets to default values, default=False
-        '''
-        logging.info(__name__ + ' : Initializing instrument Keysight_N5173B')
-        super().__init__(name, tags=['physical'])
+        """
+        logging.info(__name__ + " : Initializing instrument Keysight_N5173B")
+        super().__init__(name, tags=["physical"])
 
         self._address = address
         self._visainstrument = visa.instrument(self._address)
-        if (reset):
+        if reset:
             self.reset()
         else:
             self.get_all()
 
-
     def do_get_power(self):
-        '''
+        """
         Reads the power of the signal from the instrument
 
         Input:
@@ -62,12 +60,12 @@ class Keysight_N5173B(AbstractMicrowaveSource):
 
         Output:
             ampl (float) : power in dBm
-        '''
-        logging.debug(__name__ + ' : get power')
-        return float(self._visainstrument.query('POW:AMPL?'))
+        """
+        logging.debug(__name__ + " : get power")
+        return float(self._visainstrument.query("POW:AMPL?"))
 
     def do_set_power(self, amp):
-        '''
+        """
         Set the power of the signal
 
         Input:
@@ -75,11 +73,11 @@ class Keysight_N5173B(AbstractMicrowaveSource):
 
         Output:
             None
-        '''
-        logging.debug(__name__ + ' : set power to %f' % amp)
-        self._visainstrument.write('POW:AMPL %s' % amp)
-    
-    #def do_get_phase(self):
+        """
+        logging.debug(__name__ + " : set power to %f" % amp)
+        self._visainstrument.write("POW:AMPL %s" % amp)
+
+    # def do_get_phase(self):
     #    '''
     #    Reads the phase of the signal from the instrument
     #
@@ -92,7 +90,7 @@ class Keysight_N5173B(AbstractMicrowaveSource):
     #    logging.debug(__name__ + ' : get phase')
     #    return float(self._visainstrument.query('PHASE?'))
 
-    #def do_set_phase(self, phase):
+    # def do_set_phase(self, phase):
     #    '''
     #    Set the phase of the signal
     #
@@ -106,7 +104,7 @@ class Keysight_N5173B(AbstractMicrowaveSource):
     #    self._visainstrument.write('PHASE %s' % phase)
 
     def do_get_frequency(self):
-        '''
+        """
         Reads the frequency of the signal from the instrument
 
         Input:
@@ -114,12 +112,12 @@ class Keysight_N5173B(AbstractMicrowaveSource):
 
         Output:
             freq (float) : Frequency in Hz
-        '''
-        logging.debug(__name__ + ' : get frequency')
-        return float(self._visainstrument.query('FREQ:CW?'))
+        """
+        logging.debug(__name__ + " : get frequency")
+        return float(self._visainstrument.query("FREQ:CW?"))
 
     def do_set_frequency(self, freq):
-        '''
+        """
         Set the frequency of the instrument
 
         Input:
@@ -127,12 +125,12 @@ class Keysight_N5173B(AbstractMicrowaveSource):
 
         Output:
             None
-        '''
-        logging.debug(__name__ + ' : set frequency to %f' % freq)
-        self._visainstrument.write('FREQ:CW %s' % freq)
+        """
+        logging.debug(__name__ + " : set frequency to %f" % freq)
+        self._visainstrument.write("FREQ:CW %s" % freq)
 
     def do_get_status(self):
-        '''
+        """
         Reads the output status from the instrument
 
         Input:
@@ -140,13 +138,12 @@ class Keysight_N5173B(AbstractMicrowaveSource):
 
         Output:
             status (string) : 'On' or 'Off'
-        '''
-        logging.debug(__name__ + ' : get status')
-        return bool(int(self._visainstrument.query('OUTP?')))
-
+        """
+        logging.debug(__name__ + " : get status")
+        return bool(int(self._visainstrument.query("OUTP?")))
 
     def do_set_status(self, status):
-        '''
+        """
         Set the output status of the instrument
 
         Input:
@@ -154,18 +151,17 @@ class Keysight_N5173B(AbstractMicrowaveSource):
 
         Output:
             None
-        '''
-        logging.debug(__name__ + ' : set status to %s' % status)
-        
-        if status == True:
-            self._visainstrument.write('OUTP ON')
-        elif status == False:
-            self._visainstrument.write('OUTP OFF')
-        else:
-            raise ValueError('set_status(): can only set True or False')
+        """
+        logging.debug(__name__ + " : set status to %s" % status)
 
+        if status == True:
+            self._visainstrument.write("OUTP ON")
+        elif status == False:
+            self._visainstrument.write("OUTP OFF")
+        else:
+            raise ValueError("set_status(): can only set True or False")
 
     def reset(self):
-        logging.info(__name__ + ' : resetting instrument')
-        self._visainstrument.write('*RST')
+        logging.info(__name__ + " : resetting instrument")
+        self._visainstrument.write("*RST")
         self.get_all()

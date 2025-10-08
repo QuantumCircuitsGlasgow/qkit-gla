@@ -19,24 +19,24 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import logging
 import time
+
 import qkit
 from qkit.core.lib.misc import get_traceback
 
 AutoFormattedTB = get_traceback()
 
-class FlowControl(object):
-    '''
+
+class FlowControl:
+    """
     Class for flow control of the QT measurement environment.
-    '''
+    """
 
     STATUS_STOPPED = 0
     STATUS_RUNNING = 1
 
     def __init__(self):
-        
-        self._status = 'starting'
+        self._status = "starting"
         self._measurements_running = 0
         self._abort = False
         self._pause = False
@@ -48,24 +48,24 @@ class FlowControl(object):
     #########
 
     def measurement_start(self):
-        '''
+        """
         Indicate the start of a measurement.
 
         FIXME: The following is disabled due to lack of exception catching.
         This will increment the internal measurement counter, and if a
         measurement was not running, it will emit the 'measurement-start'
         signal.
-        '''
+        """
 
         self._measurements_running += 1
         if self._measurements_running == 1:
-            self._set_status('running')
+            self._set_status("running")
 
             # Handle callbacks
             self.run_mainloop(1, wait=False)
 
     def measurement_end(self, abort=False):
-        '''
+        """
         Indicate the end of a measurement.
 
         FIXME: The following is disabled due to lack of exception catching.
@@ -73,7 +73,7 @@ class FlowControl(object):
         and set it to 0 in abort=True. If the counter reached zero (e.g. the
         last measurement was stopped, it will emit the 'measurement-end'
         signal.
-        '''
+        """
 
         if abort:
             self._measurements_running = 0
@@ -81,26 +81,26 @@ class FlowControl(object):
             self._measurements_running -= 1
 
         if self._measurements_running == 0:
-            self._set_status('stopped')
+            self._set_status("stopped")
 
             # Handle callbacks
             self.run_mainloop(1, wait=False)
 
     def run_mainloop(self, delay, wait=True):
-        '''
+        """
         Run mainloop for a maximum of <delay> seconds.
         If wait is True (default), sleep until <delay> seconds have passed.
-        '''
+        """
         if wait and delay > 0:
             time.sleep(delay)
 
     def measurement_idle(self, delay=0.0):
-        '''
+        """
         Indicate that the measurement is idle and handle events.
 
         This function will check whether an abort has been requested and
         handle queued events for a time up to 'delay' (in seconds).
-        
+
         Be aware that both time.time and time.sleep have a granularity of around 15ms on windows.
         However, this should not be limiting.
 
@@ -108,18 +108,18 @@ class FlowControl(object):
         to be executed by the time this function handles the event queue.
         After that it handles events and sleeps for periods of 10msec. Every
         <emit_interval> seconds it will emit another measurement-idle signal.
-        '''
+        """
         start = time.time()
 
         while self._pause:
             self.check_abort()
-            self.run_mainloop(0.01,wait=True)
+            self.run_mainloop(0.01, wait=True)
 
         while True:
             self.check_abort()
 
             dt = time.time() - start
-            self.run_mainloop(delay-dt, wait=False)
+            self.run_mainloop(delay - dt, wait=False)
 
             dt = time.time() - start
             if dt + 0.02 < delay:
@@ -139,20 +139,19 @@ class FlowControl(object):
             self._exit_handlers.append(func)
 
     def exit_request(self):
-        '''Run all registered exit handlers.'''
+        """Run all registered exit handlers."""
         for func in self._exit_handlers:
             try:
                 func()
             except Exception as e:
-                print('Error in func %s: %s' % (func.__name__, str(e)))
-
+                print(f"Error in func {func.__name__}: {str(e)}")
 
     ############
     ### status
     ############
 
     def get_status(self):
-        '''Get status, one of "running", "stopped", "starting" '''
+        """Get status, one of "running", "stopped", "starting" """
         return self._status
 
     def _set_status(self, val):
@@ -162,31 +161,32 @@ class FlowControl(object):
         self._status = "stopped"
 
     def is_measuring(self):
-        return self.get_status() == 'running'
+        return self.get_status() == "running"
 
     def check_abort(self):
-        '''Check whether an abort has been requested.'''
+        """Check whether an abort has been requested."""
 
         if self._abort:
             self._abort = False
             self.measurement_end(abort=True)
-            raise ValueError('Human abort')
+            raise ValueError("Human abort")
 
     def set_abort(self):
-        '''Request an abort.'''
+        """Request an abort."""
         self._abort = True
 
     def is_paused(self):
         return self._pause
 
     def set_pause(self, pause):
-        '''Set / unset pause state.'''
+        """Set / unset pause state."""
         self._pause = pause
+
 
 def exception_handler(self, etype, value, tb, tb_offset=None):
     # when the 'tb_offset' keyword argument is omitted above, ipython
     # raises an error.
-    TB = AutoFormattedTB(mode='Context', color_scheme='Linux', tb_offset=1)
+    TB = AutoFormattedTB(mode="Context", color_scheme="Linux", tb_offset=1)
 
     fc = qkit.flow
 
@@ -199,6 +199,7 @@ def exception_handler(self, etype, value, tb, tb_offset=None):
         fc.measurement_end(abort=True)
 
     TB(etype, value, tb)
+
 
 def qtlab_exit():
     print("Closing QKIT...")

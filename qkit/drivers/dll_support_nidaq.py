@@ -16,10 +16,10 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import ctypes
-import types
-import numpy
 import logging
 import time
+
+import numpy
 
 nidaq = ctypes.windll.nicaiu
 
@@ -173,7 +173,7 @@ def read(devchan, samples=1, freq=10000.0, minv=-10.0, maxv=10.0,
         if retsamples > 1:
             CHK(nidaq.DAQmxCfgSampClkTiming(taskHandle, "", float64(freq),
                 DAQmx_Val_Rising, DAQmx_Val_FiniteSamps,
-                uInt64(samples)));
+                uInt64(samples)))
             CHK(nidaq.DAQmxStartTask(taskHandle))
             CHK(nidaq.DAQmxReadAnalogF64(taskHandle, samples, float64(timeout),
                 DAQmx_Val_GroupByChannel, data.ctypes.data,
@@ -270,7 +270,7 @@ def read_counter(devchan="/Dev1/ctr0", samples=1, freq=1.0, timeout=1.0, src="")
         if samples > 1:
             CHK(nidaq.DAQmxCfgSampClkTiming(taskHandle, "", float64(freq),
                 DAQmx_Val_Rising, DAQmx_Val_FiniteSamps,
-                uInt64(samples)));
+                uInt64(samples)))
             CHK(nidaq.DAQmxStartTask(taskHandle))
             CHK(nidaq.DAQmxReadAnalogF64(taskHandle, int32(samples), float64(timeout),
                DAQmx_Val_GroupByChannel, data.ctypes.data,
@@ -310,7 +310,7 @@ def create_counter_task(devchan, samples=1, freq=1, timeout=1, src=""):
         if samples > 1:
             CHK(nidaq.DAQmxCfgSampClkTiming(taskHandle, "", float64(freq),
                 DAQmx_Val_Rising, DAQmx_Val_FiniteSamps,
-                uInt64(samples)));
+                uInt64(samples)))
 
     except Exception, e:
         logging.error('NI DAQ call failed: %s', str(e))

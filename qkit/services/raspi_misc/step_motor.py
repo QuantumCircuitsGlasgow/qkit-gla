@@ -2,11 +2,13 @@
 # and applied to work remotely with zerorpc
 # rotation is threaded to give feedback during the rotation
 
-from time import sleep
-import RPi.GPIO as gpio
-import numpy as np
-import zerorpc
 import threading
+from time import sleep
+
+import numpy as np
+import RPi.GPIO as gpio
+import zerorpc
+
 
 class StepMotor(object):
     """

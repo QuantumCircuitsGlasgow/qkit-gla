@@ -33,9 +33,11 @@ else:
         def add_function(self,name):
             pass
 
-import visa_prologix as visa
-from time import sleep
 import sys
+from time import sleep
+
+import visa_prologix as visa
+
 
 class SR_830(Instrument):
 

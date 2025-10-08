@@ -17,16 +17,14 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import qkit
-from qkit.core.instrument_base import Instrument
-
+import atexit
 import logging
+import time
+from threading import Lock
 
 import serial
-import time,sys
-import atexit
 
-from threading import Lock
+from qkit.core.instrument_base import Instrument
 
 
 class MKS_647C(Instrument):
@@ -41,33 +39,43 @@ class MKS_647C(Instrument):
     def __init__(self, name, address, reset=False):
         """
         Initializes the MKS, and communicates with the wrapper.
-        
+
         Args:
             name (string)    : Name of the instrument
             address (string) : Serial address
             reset (bool)     : Resets to default values, default=False
         """
-        
-        logging.info(__name__ + ': Initializing instrument MKS_647C')
-        Instrument.__init__(self, name, tags=['physical'])
 
-        self.predef_pressure_unit = 13 # 100 ubar, depends on baratron
+        logging.info(__name__ + ": Initializing instrument MKS_647C")
+        Instrument.__init__(self, name, tags=["physical"])
+
+        self.predef_pressure_unit = 13  # 100 ubar, depends on baratron
         self.predef_channels = {"Ar": 1, "N2": 2, "O2": 3, "ArO": 4}
-        self.predef_gasCorfact = {"Ar": 1.37, "N2": 1.0, "O2": 1.0, "ArO": 1.37}  # Values as they are predefined in MKS
-        self.predef_flowRange = {"Ar": 6, "N2": 6, "O2": 6, "ArO": 3}  # 100sccm, 100sccm, 100sccm, 10sccm
+        self.predef_gasCorfact = {
+            "Ar": 1.37,
+            "N2": 1.0,
+            "O2": 1.0,
+            "ArO": 1.37,
+        }  # Values as they are predefined in MKS
+        self.predef_flowRange = {
+            "Ar": 6,
+            "N2": 6,
+            "O2": 6,
+            "ArO": 3,
+        }  # 100sccm, 100sccm, 100sccm, 10sccm
 
         self.mutex = Lock()
         self.setup(address)
 
         self.init_controller(reset=reset)
-        
+
     def setup(self, address="COM10"):
         baudrate = 9600
         timeout = 1
 
         self.serial_port = self._std_open(address, baudrate, timeout)
         atexit.register(self.serial_port.close)
-        
+
     def _std_open(self, device, baudrate, timeout):
         return serial.Serial(device, baudrate, timeout=timeout)
 
@@ -79,21 +87,22 @@ class MKS_647C(Instrument):
 
     def remote_cmd(self, cmd):
         # the 647C requires carriage return termination
-        cmd += '\r'
+        cmd += "\r"
         with self.mutex:
             self.serial_port.write(cmd)
-        
-            time.sleep(0.2)   #increase from .1 to .2
-            #value = self.ser.readline().strip("\x06")
+
+            time.sleep(0.2)  # increase from .1 to .2
+            # value = self.ser.readline().strip("\x06")
             rem_char = self.serial_port.inWaiting()
-        
-            value = self.serial_port.read(rem_char) # .strip("\x06")
-            time.sleep(0.2)   #to avoid wrong communication
+
+            value = self.serial_port.read(rem_char)  # .strip("\x06")
+            time.sleep(0.2)  # to avoid wrong communication
             return value.strip()
 
     """
     INSTRUMENT SETUP
     """
+
     def set_default(self):
         return self.remote_cmd("DF")
 
@@ -117,7 +126,7 @@ class MKS_647C(Instrument):
             Nothing but makes available:
             self.pressure_range, self.pressure_unit and self.flow_settings used internally for unit conversion.
         """
-        print ("Initializing controller...")
+        print("Initializing controller...")
 
         self.set_pressure_unit(self.predef_pressure_unit)
         self.pressure_range, self.pressure_unit = self.get_pressure_range()
@@ -133,32 +142,39 @@ class MKS_647C(Instrument):
             if reset:
                 self.set_off(channel)
                 self.set_flow_range(channel, self.predef_flowRange[chan_name])
-                self.set_gas_correction_factor(channel, self.predef_gasCorfact[chan_name])
+                self.set_gas_correction_factor(
+                    channel, self.predef_gasCorfact[chan_name]
+                )
             flow_range, flow_unit = self.get_flow_range(channel)
             gas_corr_fact = self.get_gas_correction_factor(channel)
-            self.flow_settings[channel] = {"flow_range": float(flow_range),
-                                           "flow_unit": str(flow_unit),
-                                           "gas_corr_fact": float(gas_corr_fact)}
+            self.flow_settings[channel] = {
+                "flow_range": float(flow_range),
+                "flow_unit": str(flow_unit),
+                "gas_corr_fact": float(gas_corr_fact),
+            }
             if reset:
                 self.set_flow(channel, 0)
-        
-        print ("Controller initialized.")
+
+        print("Controller initialized.")
         if reset:
-            print ("Values were resetted to predef values defined in __init__ and flow was turned off.")
+            print(
+                "Values were resetted to predef values defined in __init__ and flow was turned off."
+            )
         else:
-            print ("No values were resetted.")
-        print ("Channel settings are available as flow_settings[channel].")
-        print ("Pressure settings: ")
-        print (self.get_pressure_range())
-        print ("Flow settings: ")
+            print("No values were resetted.")
+        print("Channel settings are available as flow_settings[channel].")
+        print("Pressure settings: ")
+        print(self.get_pressure_range())
+        print("Flow settings: ")
         for chan in self.flow_settings:
-            print (chan, self.flow_settings[chan])
+            print(chan, self.flow_settings[chan])
 
         return
 
     """
     CHANNEL SETUP
     """
+
     def set_mode(self, channel, mode=0, master_channel=0):
         """
         The Mode Selection defines the source of setpoint for each MFC channel. Possible modes are:
@@ -198,7 +214,7 @@ class MKS_647C(Instrument):
             mode, master channel
         """
         master_channel = -1
-        cmd = "MO "+str(channel)+" R"
+        cmd = "MO " + str(channel) + " R"
         mode, master_channel = (self.remote_cmd(cmd)).split()
         return int(mode), int(master_channel)
 
@@ -209,14 +225,16 @@ class MKS_647C(Instrument):
         Args:
             channel: Channel for which the gas correction factor is to be set.
             factor: The gas correction factor to be set.
-        
+
         Note:
             This changes the gas settings to "USER, since the driver has no option to choose the gas directly.
             Chosing Argon directly from the menu on the controller gives a correction factor of 1.37.
             Nitrogen and Oxygen both are set to 1 by the device.
             This is programmed here in the predef vales of __init__.
         """
-        cmd = "GC " + str(channel) + " " + str(int(factor*100))# '{fact:04d}'.format(fact=int(factor*100))
+        cmd = (
+            "GC " + str(channel) + " " + str(int(factor * 100))
+        )  # '{fact:04d}'.format(fact=int(factor*100))
         ret = self.remote_cmd(cmd)
         gas_corr_fact = self.get_gas_correction_factor(channel)
         self.flow_settings[channel]["gas_corr_fact"] = float(gas_corr_fact)
@@ -228,13 +246,13 @@ class MKS_647C(Instrument):
 
         Args:
             channel: Channel to be checked.
-        
+
         Returns:
             Gas correction factor.
         """
         cmd = "GC " + str(channel) + " R"
         res = self.remote_cmd(cmd)
-        return float(res)/100.
+        return float(res) / 100.0
 
     def set_flow_range(self, channel, value):
         """
@@ -326,21 +344,96 @@ class MKS_647C(Instrument):
         Reeturns:
             Flow range of the channel.
         """
-        flows = [1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0,
-                 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 400.0, 500.0,
-                 1.0, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0,
-                 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 30.0, 300.0]
-        units = ['SCCM', 'SCCM', 'SCCM', 'SCCM', 'SCCM', 'SCCM', 'SCCM', 'SCCM', 'SCCM',
-                 'SLM', 'SLM', 'SLM', 'SLM', 'SLM', 'SLM', 'SLM', 'SLM', 'SLM', 'SLM',
-                 'SCMM', 'SCFH', 'SCFH', 'SCFH', 'SCFH', 'SCFH', 'SCFH', 'SCFH', 'SCFH',
-                 'SCFH', 'SCFM', 'SCFM', 'SCFM', 'SCFM', 'SCFM', 'SCFM', 'SCFM', 'SCFM',
-                 'SCFM', 'SLM', 'SLM']
+        flows = [
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            20.0,
+            50.0,
+            100.0,
+            200.0,
+            500.0,
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            20.0,
+            50.0,
+            100.0,
+            200.0,
+            400.0,
+            500.0,
+            1.0,
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            20.0,
+            50.0,
+            100.0,
+            200.0,
+            500.0,
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+            20.0,
+            50.0,
+            100.0,
+            200.0,
+            500.0,
+            30.0,
+            300.0,
+        ]
+        units = [
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SCCM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SLM",
+            "SCMM",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFH",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SCFM",
+            "SLM",
+            "SLM",
+        ]
 
         cmd = "RA " + str(channel) + " R"
         flownum = int(self.remote_cmd(cmd))
         return flows[flownum], units[flownum]
 
-    def set_high_limit(self, channel, limit):   #in 0.1 percent: 0..1100
+    def set_high_limit(self, channel, limit):  # in 0.1 percent: 0..1100
         """
         Set an upper limit for the flow of a channel.
         (old name: setHighLimit)
@@ -377,7 +470,7 @@ class MKS_647C(Instrument):
         """
         cmd = "LL " + str(channel) + " " + str(limit)
         return self.remote_cmd(cmd)
-        
+
     def get_low_limit(self, channel):
         """
         Check for lower flow limit of a channel.
@@ -395,6 +488,7 @@ class MKS_647C(Instrument):
     """
     PROCESS
     """
+
     def set_on_all(self):
         """
         Open main valve.
@@ -466,6 +560,7 @@ class MKS_647C(Instrument):
     """
     FLOW
     """
+
     def get_flow(self, channel):
         """
         Check for actual flow of a channel.
@@ -479,7 +574,12 @@ class MKS_647C(Instrument):
         """
         cmd = "FL " + str(channel)
         flow = self.remote_cmd(cmd)
-        return float(flow)*self.flow_settings[channel]['flow_range']*self.flow_settings[channel]['gas_corr_fact']/1000.
+        return (
+            float(flow)
+            * self.flow_settings[channel]["flow_range"]
+            * self.flow_settings[channel]["gas_corr_fact"]
+            / 1000.0
+        )
 
     def set_flow(self, channel, value):
         """
@@ -490,8 +590,20 @@ class MKS_647C(Instrument):
             channel: Channel for which the flow is set.
             value: Flow to be set in units defined by flow range.
         """
-        cmd = "FS " + str(channel) + str(int(round(value / self.flow_settings[channel]['flow_range'] /
-                                                   self.flow_settings[channel]['gas_corr_fact']*1000.)))
+        cmd = (
+            "FS "
+            + str(channel)
+            + str(
+                int(
+                    round(
+                        value
+                        / self.flow_settings[channel]["flow_range"]
+                        / self.flow_settings[channel]["gas_corr_fact"]
+                        * 1000.0
+                    )
+                )
+            )
+        )
         # print cmd
         return self.remote_cmd(cmd)
 
@@ -502,18 +614,24 @@ class MKS_647C(Instrument):
 
         Args:
             channel: Channel for which the flow is set.
-        
+
         Returns:
             Flow setpoint of a given channel in units defined by flow range.
         """
-        cmd = "FS " + str(channel) +" R"
+        cmd = "FS " + str(channel) + " R"
         ret = self.remote_cmd(cmd)
         # print ret
-        return float(ret)*self.flow_settings[channel]['flow_range']*self.flow_settings[channel]['gas_corr_fact']/1000.
+        return (
+            float(ret)
+            * self.flow_settings[channel]["flow_range"]
+            * self.flow_settings[channel]["gas_corr_fact"]
+            / 1000.0
+        )
 
     """
     PRESSURE
     """
+
     def set_pressure_unit(self, pu=13):
         """
         Set the pressure unit.
@@ -548,20 +666,186 @@ class MKS_647C(Instrument):
         """
         cmd = "PU R"
         return self.remote_cmd(cmd)
-    
+
     def get_pressure_range(self):
-        pressures = [1., 10., 100., 1000., 1., 10., 100., 1000., 1., 10., 100., 1., 10., 100., 1000., 1., 10., 100.,
-                     1000., 1., 10., 100., 1., 10., 100., 1., 10., 100., 1000., 2., 5., 20., 50., 200., 500., 2000.,
-                     5000., 2., 5., 20., 50., 200., 500., 2000., 5000., 2., 5., 20., 50., 2., 5., 20., 50., 200., 500.,
-                     2000., 5000., 2., 5., 20., 50., 200., 500., 2000., 5000., 2., 5., 20., 50., 2., 5., 20., 50., 200.,
-                     500., 2., 5., 20., 50., 200., 500., 2000., 5000., 1., 2., 5., 10]
-        units = ['mTorr', 'mTorr', 'mTorr', 'mTorr', 'Torr', 'Torr', 'Torr', 'Torr', 'kTorr', 'kTorr', 'kTorr', 'uBar',
-                 'uBar', 'uBar', 'uBar', 'mBar', 'mBar', 'mBar', 'mBar', 'Bar', 'Bar', 'Bar', 'Pa', 'Pa', 'Pa', 'kPa',
-                 'kPa', 'kPa', 'kPa', 'mTorr', 'mTorr', 'mTorr', 'mTorr', 'mTorr', 'mTorr', 'mTorr', 'mTorr', 'Torr',
-                 'Torr', 'Torr', 'Torr', 'Torr', 'Torr', 'Torr', 'Torr', 'kTorr', 'kTorr', 'kTorr', 'kTorr', 'ubar',
-                 'ubar', 'ubar', 'ubar', 'ubar', 'ubar', 'ubar', 'ubar', 'mbar', 'mbar', 'mbar', 'mbar', 'mbar', 'mbar',
-                 'mbar', 'mbar', 'bar', 'bar', 'bar', 'bar', 'Pa', 'Pa', 'Pa', 'Pa', 'Pa', 'Pa', 'kPa', 'kPa', 'kPa',
-                 'kPa', 'kPa', 'kPa', 'kPa', 'kPa', 'Mpa', 'Mpa', 'Mpa', 'Mpa']
+        pressures = [
+            1.0,
+            10.0,
+            100.0,
+            1000.0,
+            1.0,
+            10.0,
+            100.0,
+            1000.0,
+            1.0,
+            10.0,
+            100.0,
+            1.0,
+            10.0,
+            100.0,
+            1000.0,
+            1.0,
+            10.0,
+            100.0,
+            1000.0,
+            1.0,
+            10.0,
+            100.0,
+            1.0,
+            10.0,
+            100.0,
+            1.0,
+            10.0,
+            100.0,
+            1000.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            200.0,
+            500.0,
+            2000.0,
+            5000.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            200.0,
+            500.0,
+            2000.0,
+            5000.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            200.0,
+            500.0,
+            2000.0,
+            5000.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            200.0,
+            500.0,
+            2000.0,
+            5000.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            200.0,
+            500.0,
+            2.0,
+            5.0,
+            20.0,
+            50.0,
+            200.0,
+            500.0,
+            2000.0,
+            5000.0,
+            1.0,
+            2.0,
+            5.0,
+            10,
+        ]
+        units = [
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "kTorr",
+            "kTorr",
+            "kTorr",
+            "uBar",
+            "uBar",
+            "uBar",
+            "uBar",
+            "mBar",
+            "mBar",
+            "mBar",
+            "mBar",
+            "Bar",
+            "Bar",
+            "Bar",
+            "Pa",
+            "Pa",
+            "Pa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "mTorr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "Torr",
+            "kTorr",
+            "kTorr",
+            "kTorr",
+            "kTorr",
+            "ubar",
+            "ubar",
+            "ubar",
+            "ubar",
+            "ubar",
+            "ubar",
+            "ubar",
+            "ubar",
+            "mbar",
+            "mbar",
+            "mbar",
+            "mbar",
+            "mbar",
+            "mbar",
+            "mbar",
+            "mbar",
+            "bar",
+            "bar",
+            "bar",
+            "bar",
+            "Pa",
+            "Pa",
+            "Pa",
+            "Pa",
+            "Pa",
+            "Pa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "kPa",
+            "Mpa",
+            "Mpa",
+            "Mpa",
+            "Mpa",
+        ]
         pnum = int(self.get_pressure_unit())
         return pressures[pnum], units[pnum]
 
@@ -575,7 +859,7 @@ class MKS_647C(Instrument):
             Converted from 0.1 percent of full scale.
         """
         cmd = "PR"
-        return float(self.remote_cmd(cmd))*self.pressure_range/1000
+        return float(self.remote_cmd(cmd)) * self.pressure_range / 1000
 
     def set_pressure_mode(self, On=True):
         """
@@ -615,7 +899,7 @@ class MKS_647C(Instrument):
             Setpoint in 0.1 percent of full scale.
         """
         # value in 0.1 percent of fullscale: 0..1100
-        cmd = "PS "+str(value)
+        cmd = "PS " + str(value)
         return self.remote_cmd(cmd)
 
     def get_pressure_setpoint(self):
@@ -642,8 +926,8 @@ class MKS_647C(Instrument):
         cmd = "PC"
         return self.remote_cmd(cmd)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     MKS = MKS_647C("MKS", address="COM10")
 
     MKS.init_controller()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # IV_curve.py analysis class for IV like transport measurements
 # Micha Wildermuth, micha.wildermuth@kit.edu 2019
 
@@ -17,17 +16,10 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import sys
-import numpy as np
-from scipy import signal as sig
+
 # TODO: uncertainty analysis probably using import uncertainties
 
-import qkit
-from qkit.storage.store import Data
-import qkit.measure.measurement_class as mc
-from qkit.gui.plot import plot as qviewkit
 
-import json
-from qkit.measure.json_handler import QkitJSONEncoder
 
 
 # class IV_curve2(object):
@@ -1945,11 +1937,14 @@ from qkit.measure.json_handler import QkitJSONEncoder
 #             return I_cs, properties
 
 
-if sys.version_info.major is 2:
+if sys.version_info.major == 2:
     from qkit.analysis.IV_curve2 import IV_curve2
+
     class IV_curve(IV_curve2):
         pass
-elif sys.version_info.major is 3:
+
+elif sys.version_info.major == 3:
     from qkit.analysis.IV_curve3 import IV_curve3
+
     class IV_curve(IV_curve3):
         pass

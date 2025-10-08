@@ -22,17 +22,13 @@
 
 
 import numpy as np
-from scipy.optimize import fsolve
+from matplotlib import colors
 from scipy import constants as pyc
 from sklearn.mixture import GaussianMixture
 
-from matplotlib import colors
-
 
 class IQCloudAnalysis:
-
     def __init__(self):
-
         self.sweep_param = None
         self.data = None
         self.dist_avg = 0.0
@@ -40,7 +36,7 @@ class IQCloudAnalysis:
 
         # fit
         self.gmm = None
-        self.covariance_type=None
+        self.covariance_type = None
         self.n_states = 0
         self.positions = None
         self.weights = None
@@ -63,11 +59,11 @@ class IQCloudAnalysis:
         self.fig = None
         self.ax = None
 
-
     #######  out of the box usage for the two qubit clouds ################
 
-    def analyse_qubit_clouds(self, I, Q, fq=-1,
-                             pos_init=None, weights_init=None, precisions_init=None):
+    def analyse_qubit_clouds(
+        self, I, Q, fq=-1, pos_init=None, weights_init=None, precisions_init=None
+    ):
         """
         This routine performs an IQ cloud analyis with the given gaussian mixture model and
         interprets the two most prominent states as the qubit system.
@@ -81,8 +77,13 @@ class IQCloudAnalysis:
         self.set_IQ_data_sweep(I, Q)
 
         # 2. set up gaussian micture model
-        self.set_up_gaussian_mixture_model(self.n_states, covariance_type=self.covariance_type,
-                                           pos_init=pos_init, weights_init=weights_init, precisions_init=precisions_init)
+        self.set_up_gaussian_mixture_model(
+            self.n_states,
+            covariance_type=self.covariance_type,
+            pos_init=pos_init,
+            weights_init=weights_init,
+            precisions_init=precisions_init,
+        )
 
         # 3. fit clouds
         self.fit_clouds()
@@ -102,21 +103,27 @@ class IQCloudAnalysis:
         # calc separation and angle
         a = np.linalg.norm(self.positions[step, 0, :])
         b = np.linalg.norm(self.positions[step, 1, :])
-        self.separation = distance / np.sqrt(self.max_variance)   # lower bound for the separation
+        self.separation = distance / np.sqrt(
+            self.max_variance
+        )  # lower bound for the separation
         self.angle = np.arccos((a**2 + b**2 - distance**2) / (2 * a * b))
 
         # calc temperature in mK
         if fq > 0:
-            self.temp = 1e3 * pyc.h * fq / (pyc.k * np.log(self.weights[step, 0] / self.weights[step, 1]))
+            self.temp = (
+                1e3
+                * pyc.h
+                * fq
+                / (pyc.k * np.log(self.weights[step, 0] / self.weights[step, 1]))
+            )
         else:
             self.temp = -1
-
 
     ################ load and manipulate data  ##############
 
     def set_IQ_data_sweep(self, I, Q, sweep_param=None, dist_avg=-1):
-        """ Load 2-dimensional IQ data in the form [avg, sweep]
-            If needed scale the data with a given dist_avg
+        """Load 2-dimensional IQ data in the form [avg, sweep]
+        If needed scale the data with a given dist_avg
         """
 
         data = np.dstack((I, Q))
@@ -130,32 +137,46 @@ class IQCloudAnalysis:
 
         # scale data around unity - important for convergence
         if dist_avg == -1:
-            self.dist_avg = np.mean(np.sqrt(self.data[:, :, 0]**2 + self.data[:, :, 1]**2), axis=(0, 1))
+            self.dist_avg = np.mean(
+                np.sqrt(self.data[:, :, 0] ** 2 + self.data[:, :, 1] ** 2), axis=(0, 1)
+            )
         else:
             self.dist_avg = dist_avg
         self.data /= self.dist_avg
 
-
     def rotate_data(self, theta):
-
         data = np.empty_like(self.data)
-        data[:, :, 0] = np.cos(theta) * self.data[:, :, 0] - np.sin(theta) * self.data[:, :, 1]
-        data[:, :, 1] = np.sin(theta) * self.data[:, :, 0] + np.cos(theta) * self.data[:, :, 1]
+        data[:, :, 0] = (
+            np.cos(theta) * self.data[:, :, 0] - np.sin(theta) * self.data[:, :, 1]
+        )
+        data[:, :, 1] = (
+            np.sin(theta) * self.data[:, :, 0] + np.cos(theta) * self.data[:, :, 1]
+        )
         self.data = data
-
 
     ######## gaussian mixture routines ############
 
-    def set_up_gaussian_mixture_model(self, n_states=2, covariance_type='spherical',
-                                      pos_init=None, weights_init=None, precisions_init=None, tol=1e-3):
-
+    def set_up_gaussian_mixture_model(
+        self,
+        n_states=2,
+        covariance_type="spherical",
+        pos_init=None,
+        weights_init=None,
+        precisions_init=None,
+        tol=1e-3,
+    ):
         self.n_states = n_states
         self.covariance_type = covariance_type
-        self.gmm = GaussianMixture(self.n_states, covariance_type=covariance_type,
-                                   means_init=pos_init, weights_init=weights_init, precisions_init=precisions_init, tol=tol)
+        self.gmm = GaussianMixture(
+            self.n_states,
+            covariance_type=covariance_type,
+            means_init=pos_init,
+            weights_init=weights_init,
+            precisions_init=precisions_init,
+            tol=tol,
+        )
 
     def calc_covariance_properties(self, step):
-
         generalized_variance = np.empty(self.n_states)
 
         if self.covariance_type == "spherical":
@@ -167,7 +188,9 @@ class IQCloudAnalysis:
             generalized_variance[:] = np.linalg.det(self.covariances[step])
         elif self.covariance_type == "diag":
             max_variance = np.max(self.covariances[step])
-            generalized_variance[:] = self.covariances[step][:, 0]**2 + self.covariances[step][:, 1]**2
+            generalized_variance[:] = (
+                self.covariances[step][:, 0] ** 2 + self.covariances[step][:, 1] ** 2
+            )
         elif self.covariance_type == "full":
             max_variance = 0.0
             for i in range(self.n_states):
@@ -177,7 +200,6 @@ class IQCloudAnalysis:
                 generalized_variance[i] = np.linalg.det(self.covariances[step][i, :, :])
 
         return generalized_variance, max_variance
-
 
     def fit_clouds(self):
         """
@@ -194,20 +216,21 @@ class IQCloudAnalysis:
         self.max_variance = np.zeros(self.n_steps)
 
         for i in range(self.n_steps):
-
             self.gmm.fit(self.data[i])
 
             self.positions[i, :, :] = self.gmm.means_
             self.weights[i, :] = self.gmm.weights_
             self.covariances[i] = self.gmm.covariances_
             self.precisions[i] = self.gmm.precisions_
-            self.generalized_variance[i], self.max_variance[i] = self.calc_covariance_properties(i)
-
+            (
+                self.generalized_variance[i],
+                self.max_variance[i],
+            ) = self.calc_covariance_properties(i)
 
     def fit_clouds_weight(self, ref_pos, ref_covar):
-        """ Maximum likelihood fit of the weights.
-            Simple implementation only for 2 states possible.
-            TODO: for more states a warm start could give similar results
+        """Maximum likelihood fit of the weights.
+        Simple implementation only for 2 states possible.
+        TODO: for more states a warm start could give similar results
         """
 
         self.positions = np.zeros((self.n_steps, self.n_states, 2))
@@ -229,28 +252,33 @@ class IQCloudAnalysis:
                 ref_precs[i, :, :] = np.linalg.inv(ref_covar[i, :, :])
 
         for i in range(self.n_steps):
-
             self.positions[i, :, :] = ref_pos
             self.covariances[i] = ref_covar
             self.precisions[i] = ref_precs
-            self.generalized_variance[i], self.max_variance[i] = self.calc_covariance_properties(i)
+            (
+                self.generalized_variance[i],
+                self.max_variance[i],
+            ) = self.calc_covariance_properties(i)
 
             if self.n_states == 1:
                 self.weights[i, 0] = 1.0
             if self.n_states == 2:
                 self.weights[i, :] = self.weights_fit(i)
             else:
-                print("Fitting of specific parameters is not supported by scikit-learn."
-                      "You can try fitting with a warm start. TODO: implement it!")
-
+                print(
+                    "Fitting of specific parameters is not supported by scikit-learn."
+                    "You can try fitting with a warm start. TODO: implement it!"
+                )
 
     def weights_fit(self, step):
-        """ Fast maximum likelihood fit of the weights for two states.
-            The position and the variance must be given
+        """Fast maximum likelihood fit of the weights for two states.
+        The position and the variance must be given
         """
         s1 = np.sqrt(self.generalized_variance[step, 0])
         s2 = np.sqrt(self.generalized_variance[step, 1])
-        dist = 0.5 * self.calc_mahalanobis_dist(self.data[step], self.positions[step], self.precisions[step])
+        dist = 0.5 * self.calc_mahalanobis_dist(
+            self.data[step], self.positions[step], self.precisions[step]
+        )
 
         e = s2 / s1 * np.exp(dist[:, 1] - dist[:, 0])
         c = (e + 1) / (e - 1)
@@ -261,7 +289,6 @@ class IQCloudAnalysis:
         delta = 0.0
 
         while delta_right - delta_left > tol:
-
             df = np.sum(1 / (delta + c))
 
             if df > 0:
@@ -271,9 +298,8 @@ class IQCloudAnalysis:
                 delta_right = delta
                 delta = (delta_right + delta_left) / 2
 
-                            # final numerical error of state population better than 0.5 * tol
+                # final numerical error of state population better than 0.5 * tol
         return 0.5 * (1 + delta), 0.5 * (1 - delta)
-
 
     def calc_mahalanobis_dist(self, data, positions, precisions):
         """
@@ -283,25 +309,29 @@ class IQCloudAnalysis:
         dist = np.empty((data.shape[0], self.n_states))
 
         for i in range(self.n_states):
-
             v = data - positions[i]
-            if self.covariance_type == 'spherical':
-                dist[:, i] = precisions[i] * np.einsum('ij,ij->i', v, v)
-            elif self.covariance_type == 'tied':
-                dist[:, i] = np.einsum('ij,ji->i', v, np.einsum('kj,ij->ki', precisions, v))
-            elif self.covariance_type == 'diag':
-                dist[:, i] = np.einsum('ij,ij->i', v, np.einsum('j,ij->ij', precisions[i], v))
-            elif self.covariance_type == 'full':
-                dist[:, i] = np.einsum('ij,ji->i', v, np.einsum('kj,ij->ki', precisions[i], v))
+            if self.covariance_type == "spherical":
+                dist[:, i] = precisions[i] * np.einsum("ij,ij->i", v, v)
+            elif self.covariance_type == "tied":
+                dist[:, i] = np.einsum(
+                    "ij,ji->i", v, np.einsum("kj,ij->ki", precisions, v)
+                )
+            elif self.covariance_type == "diag":
+                dist[:, i] = np.einsum(
+                    "ij,ij->i", v, np.einsum("j,ij->ij", precisions[i], v)
+                )
+            elif self.covariance_type == "full":
+                dist[:, i] = np.einsum(
+                    "ij,ji->i", v, np.einsum("kj,ij->ki", precisions[i], v)
+                )
 
         return dist
-
 
     ####### different cloud sorting routines  ################
 
     def sort_clouds_positions(self, ref_pos=None):
-        """ Sorts the states according to a reference positions.
-            If ref_pos is None the first position of the sweep is chosen as reference.
+        """Sorts the states according to a reference positions.
+        If ref_pos is None the first position of the sweep is chosen as reference.
         """
         if ref_pos is None:
             ref_pos = self.positions[0, :, :]
@@ -310,8 +340,9 @@ class IQCloudAnalysis:
 
         for i in range(self.n_steps):
             for j in range(self.n_states):
-                dist = (self.positions[i, j, 0] - ref_pos[:, 0])**2 + \
-                       (self.positions[i, j, 1] - ref_pos[:, 1])**2
+                dist = (self.positions[i, j, 0] - ref_pos[:, 0]) ** 2 + (
+                    self.positions[i, j, 1] - ref_pos[:, 1]
+                ) ** 2
 
                 label[j] = np.argmin(dist)
 
@@ -322,12 +353,9 @@ class IQCloudAnalysis:
                 self.precisions[i][:] = self.precisions[i][label]
             self.generalized_variance[i, :] = self.generalized_variance[i, label]
 
-
     def sort_clouds_weights(self):
-        """ Sorts the states according to their weight
-        """
+        """Sorts the states according to their weight"""
         for i in range(self.n_steps):
-
             aw = np.argsort(self.weights[i, :])[::-1]
             self.positions[i, :, :] = self.positions[i, aw, :]
             self.weights[i, :] = self.weights[i, aw]
@@ -336,18 +364,16 @@ class IQCloudAnalysis:
                 self.precisions[i][:] = self.precisions[i][aw]
             self.generalized_variance[i, :] = self.generalized_variance[i, aw]
 
-
     ###### cloud evaluation ##########
 
     def calc_amplitude_phase(self):
-
         self.amplitude = np.linalg.norm(self.positions[:, :, :], axis=2)
         self.phase = np.arctan2(self.positions[:, :, 1], self.positions[:, :, 0])
 
     def calc_cloud_distance(self, cloud_a, cloud_b):
-
-        return np.linalg.norm(self.positions[:, cloud_b, :] - self.positions[:, cloud_a, :], axis=1)
-
+        return np.linalg.norm(
+            self.positions[:, cloud_b, :] - self.positions[:, cloud_a, :], axis=1
+        )
 
     def calc_temperature(self, cloud_a, cloud_b, delta_freq):
         """
@@ -359,9 +385,8 @@ class IQCloudAnalysis:
 
         beta = np.log(self.weights[:, cloud_a] / self.weights[:, cloud_b]) / delta_freq
 
-        self.temp = 1e3 * pyc.h / (pyc.k * beta)        # in mK
-        self.beta = pyc.k * beta / pyc.h                # in 1 / K
-
+        self.temp = 1e3 * pyc.h / (pyc.k * beta)  # in mK
+        self.beta = pyc.k * beta / pyc.h  # in 1 / K
 
     ###################### plotting #############################
 
@@ -369,9 +394,14 @@ class IQCloudAnalysis:
         self.ax = ax
 
     def plot_clouds(self, step=0, style="histogram", bin_size=0.015):
-
-        x_range = [np.floor(np.min(self.data[step, :, 0]) / bin_size) * bin_size, np.ceil(np.max(self.data[step, :, 0]) / bin_size) * bin_size]
-        y_range = [np.floor(np.min(self.data[step, :, 1]) / bin_size) * bin_size, np.ceil(np.max(self.data[step, :, 1]) / bin_size) * bin_size]
+        x_range = [
+            np.floor(np.min(self.data[step, :, 0]) / bin_size) * bin_size,
+            np.ceil(np.max(self.data[step, :, 0]) / bin_size) * bin_size,
+        ]
+        y_range = [
+            np.floor(np.min(self.data[step, :, 1]) / bin_size) * bin_size,
+            np.ceil(np.max(self.data[step, :, 1]) / bin_size) * bin_size,
+        ]
         bins_x = np.arange(x_range[0] - bin_size / 2, x_range[1] + bin_size, bin_size)
         bins_y = np.arange(y_range[0] - bin_size / 2, y_range[1] + bin_size, bin_size)
 
@@ -385,14 +415,21 @@ class IQCloudAnalysis:
                 print("More than 1e6 points - falling back on histogram!")
 
         if style == "histogram":
-
-            H, _, _ = np.histogram2d(self.data[step, :, 0], self.data[step, :, 1], bins=[bins_x, bins_y])
+            H, _, _ = np.histogram2d(
+                self.data[step, :, 0], self.data[step, :, 1], bins=[bins_x, bins_y]
+            )
 
             hmax = np.max(H)
-            H[H < 1] = hmax + 1   # trick to get a white color for all zero entries
+            H[H < 1] = hmax + 1  # trick to get a white color for all zero entries
 
-            im = self.ax.imshow(H.T, origin="lower", extent=(bins_x[0], bins_x[-1], bins_y[0], bins_y[-1]), cmap="terrain",
-                      norm=colors.LogNorm(vmin=1, vmax=hmax), interpolation="none")
+            im = self.ax.imshow(
+                H.T,
+                origin="lower",
+                extent=(bins_x[0], bins_x[-1], bins_y[0], bins_y[-1]),
+                cmap="terrain",
+                norm=colors.LogNorm(vmin=1, vmax=hmax),
+                interpolation="none",
+            )
 
         # contour plot
         x = np.linspace(bins_x[0], bins_x[-1], 101)
@@ -402,24 +439,30 @@ class IQCloudAnalysis:
 
         iq = np.dstack((X, Y))
         iq = np.reshape(iq, (y.size * x.size, 2))
-        dist = self.calc_mahalanobis_dist(iq, self.positions[step, :, :], self.precisions[step])
+        dist = self.calc_mahalanobis_dist(
+            iq, self.positions[step, :, :], self.precisions[step]
+        )
         dist = np.reshape(dist, (y.size, x.size, self.n_states))
 
         Z = np.zeros_like(X)
         for i in range(self.n_states):
-            Z += self.weights[step, i] * np.exp(- 0.5 * dist[:, :, i]) / (2 * np.pi * np.sqrt(self.generalized_variance[step, i]))
+            Z += (
+                self.weights[step, i]
+                * np.exp(-0.5 * dist[:, :, i])
+                / (2 * np.pi * np.sqrt(self.generalized_variance[step, i]))
+            )
         self.ax.contour(X, Y, np.log(Z))
 
         # TODO plot sigma areas of individual clouds
         # sigma areas of the individual states
-        #s = np.linspace(0, 2 * np.pi, 101)
-        #for i in range(self.n_states):
+        # s = np.linspace(0, 2 * np.pi, 101)
+        # for i in range(self.n_states):
         #    self.ax.plot(self.positions[step, i, 0] + np.dot(np.cos(s), self.positions[step, i, 0] + np.sin(s))
 
         # plot origin and position of states
         # self.ax.plot(0.0, 0.0, 'r.')
         for i in range(self.n_states):
-            self.ax.plot(self.positions[step, i, 0], self.positions[step, i, 1], 'k.')
+            self.ax.plot(self.positions[step, i, 0], self.positions[step, i, 1], "k.")
 
         self.ax.set_xlim(bins_x[0], bins_x[-1])
         self.ax.set_ylim(bins_y[0], bins_y[-1])
@@ -427,15 +470,6 @@ class IQCloudAnalysis:
 
         return im
 
-
     def plot_weights(self):
-
         for i in range(self.n_states):
-            self.ax.plot(self.sweep_param, self.weights[:, i], '.')
-
-
-
-
-
-
-
+            self.ax.plot(self.sweep_param, self.weights[:, i], ".")

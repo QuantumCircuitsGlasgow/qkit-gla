@@ -1,9 +1,11 @@
 # zmq based info_service client
 # HR@KIT/2017
 
-import qkit
 import zmq
+
+import qkit
 from qkit.core.lib.com.signals import SIGNALS
+
 # reverse the SIGNAL
 RSIGNALS = dict((v,k) for k,v in SIGNALS.iteritems())
 

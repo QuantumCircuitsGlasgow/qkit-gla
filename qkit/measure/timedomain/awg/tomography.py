@@ -1,14 +1,16 @@
-import qkit
-import numpy as np
+import gc
+import logging
 import os.path
+import sys
 import time
-import logging,warnings
-import sys, gc
+import warnings
+
+import numpy as np
+
+import qkit
+import qkit.measure.timedomain.awg.generate_waveform as gwf
 #from gui.notebook.Progress_Bar import Progress_Bar
 import qkit.measure.timedomain.awg.load_awg as load_awg
-import qkit.measure.timedomain.awg.generate_waveform as gwf
-
-
 
 iq = qkit.instruments.get('iq')
 gc.collect()

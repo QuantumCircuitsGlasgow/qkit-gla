@@ -9,24 +9,20 @@
 # Thus use this file as template and look up for your experiments.
 
 
-
-import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-
-from qm.qua import *
+import numpy as np
 from qm import SimulationConfig
-from qm import LoopbackInterface
+from qm.qua import (align, assign, declare, else_, fixed, for_, if_, measure,
+                    play, program, save, wait)
 
-from qm.QuantumMachinesManager import QuantumMachinesManager
-from qkit.measure.timedomain.quantum_machine.qm_qkit_wrapper import QmQkitWrapper
+from qkit.measure.timedomain.quantum_machine.qm_qkit_wrapper import \
+    QmQkitWrapper
 
 bit_shift = 12
 
+
 class QuantumJumpMonitoring(QmQkitWrapper):
-
     def __init__(self, qm_config):
-
         QmQkitWrapper.__init__(self)
 
         self.qm_config = qm_config
@@ -54,7 +50,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
     @QmQkitWrapper.measure
     def quantum_jump_test(self, n_measure, ref_pos, dist, t_wait=25, plot=True):
-
         pos1x = ref_pos[0, 0].item()
         pos1y = ref_pos[0, 1].item()
         pos2x = ref_pos[1, 0].item()
@@ -74,19 +69,34 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             d1 = declare(fixed)
             d2 = declare(fixed)
             state = declare(bool)
-            #state = declare(int)
+            # state = declare(int)
 
             with for_(N, 0, N < n_measure, N + 1):
-
                 # measurement block:
-                measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                measure(
+                    "readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs)
+                )
+                measure(
+                    "readout_ref",
+                    "reference",
+                    None,
+                    ("integW_Ir", Ir),
+                    ("integW_Qr", Qr),
+                )
 
                 wait(t_wait, "signal")
 
                 # calculations:
-                assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
-                assign(Q, (Is << bit_shift) * (Qr << bit_shift) - (Qs << bit_shift) * (Ir << bit_shift))
+                assign(
+                    I,
+                    (Is << bit_shift) * (Ir << bit_shift)
+                    + (Qs << bit_shift) * (Qr << bit_shift),
+                )
+                assign(
+                    Q,
+                    (Is << bit_shift) * (Qr << bit_shift)
+                    - (Qs << bit_shift) * (Ir << bit_shift),
+                )
 
                 assign(d1, (I - pos1x) * (I - pos1x) + (Q - pos1y) * (Q - pos1y))
                 assign(d2, (I - pos2x) * (I - pos2x) + (Q - pos2y) * (Q - pos2y))
@@ -120,10 +130,13 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         self.t = res.variable_results.state.ts_nsec
 
         # qkit data storage
-        self.exp_name = "quantum_jumps_{}us".format(4 * t_wait / 1000).replace('.', 'p')
+        self.exp_name = f"quantum_jumps_{4 * t_wait / 1000}us".replace(".", "p")
         self.coords = {"t": [self.t / 1000, "us"]}
-        self.values = {"state": [state, ["t"], "sate"],
-                       "I": [self.I, ["t"], "V"], "Q": [self.Q, ["t"], "V"]}
+        self.values = {
+            "state": [state, ["t"], "sate"],
+            "I": [self.I, ["t"], "V"],
+            "Q": [self.Q, ["t"], "V"],
+        }
 
         if plot:
             self.fig.clear()
@@ -143,9 +156,17 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             ax4 = self.fig.add_subplot(grid[3, 0])
             ax4.scatter(self.I, self.Q, 0.1)
             s = np.linspace(0, 2 * np.pi)
-            ax4.plot(ref_pos[0, 0] + np.sqrt(var1) * np.cos(s), ref_pos[0, 1] + np.sqrt(var1) * np.sin(s), 'k')
-            ax4.plot(ref_pos[1, 0] + np.sqrt(var2) * np.cos(s), ref_pos[1, 1] + np.sqrt(var2) * np.sin(s), 'k')
-            ax4.plot(0.0, 0.0, 'r.')
+            ax4.plot(
+                ref_pos[0, 0] + np.sqrt(var1) * np.cos(s),
+                ref_pos[0, 1] + np.sqrt(var1) * np.sin(s),
+                "k",
+            )
+            ax4.plot(
+                ref_pos[1, 0] + np.sqrt(var2) * np.cos(s),
+                ref_pos[1, 1] + np.sqrt(var2) * np.sin(s),
+                "k",
+            )
+            ax4.plot(0.0, 0.0, "r.")
             ax4.axis("equal")
 
     @QmQkitWrapper.measure
@@ -155,9 +176,9 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         """
 
         pos1x = ref_pos[0, 0].item()
-        pos1y = ref_pos[0, 1].item()
+        ref_pos[0, 1].item()
         pos2x = ref_pos[1, 0].item()
-        pos2y = ref_pos[1, 1].item()
+        ref_pos[1, 1].item()
 
         # var1 = dist[0].item()
         # var2 = dist[1].item()
@@ -165,7 +186,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         sigma2 = dist[1].item()
 
         with program() as quantumJumps:
-
             N = declare(int)
             Is = declare(fixed)
             Qs = declare(fixed)
@@ -182,14 +202,30 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
             with for_(N, 0, N < n_measure, N + 1):
                 # measurement block:
-                measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                measure(
+                    "readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs)
+                )
+                measure(
+                    "readout_ref",
+                    "reference",
+                    None,
+                    ("integW_Ir", Ir),
+                    ("integW_Qr", Qr),
+                )
 
                 wait(t_wait, "signal")
 
                 # calculations:
-                assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
-                assign(Q, (Is << bit_shift) * (Qr << bit_shift) - (Qs << bit_shift) * (Ir << bit_shift))
+                assign(
+                    I,
+                    (Is << bit_shift) * (Ir << bit_shift)
+                    + (Qs << bit_shift) * (Qr << bit_shift),
+                )
+                assign(
+                    Q,
+                    (Is << bit_shift) * (Qr << bit_shift)
+                    - (Qs << bit_shift) * (Ir << bit_shift),
+                )
 
                 # assign(d1, (I - pos1x) * (I - pos1x) + (Q - pos1y) * (Q - pos1y))
                 # assign(d2, (I - pos2x) * (I - pos2x) + (Q - pos2y) * (Q - pos2y))
@@ -263,22 +299,31 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         hist_up = res.variable_results.hist_up.values
         hist_down = res.variable_results.hist_down.values
 
-        hist_up, _ = np.histogram(hist_up[1:-1], bins=np.arange(hist_up.max() + 2) - 0.5)   # Throw out first and last jump
-        hist_down, _ = np.histogram(hist_down[1:-1], bins=np.arange(hist_down.max() + 2) - 0.5)  # Throw out first and last jump
+        hist_up, _ = np.histogram(
+            hist_up[1:-1], bins=np.arange(hist_up.max() + 2) - 0.5
+        )  # Throw out first and last jump
+        hist_down, _ = np.histogram(
+            hist_down[1:-1], bins=np.arange(hist_down.max() + 2) - 0.5
+        )  # Throw out first and last jump
 
         # qkit data storage
-        self.exp_name = "quantum_jumps_{}us".format(4 * t_wait / 1000).replace('.', 'p')
+        self.exp_name = f"quantum_jumps_{4 * t_wait / 1000}us".replace(".", "p")
         self.coords = {"t": [self.t / 1000, "us"]}
-        self.values = {"state": [state, ["t"], "sate"],
-                       "I": [self.I, ["t"], "V"], "Q": [self.Q, ["t"], "V"]}
+        self.values = {
+            "state": [state, ["t"], "sate"],
+            "I": [self.I, ["t"], "V"],
+            "Q": [self.Q, ["t"], "V"],
+        }
 
         if plot:
             self.fig.clear()
-            grid = self.fig.add_gridspec(ncols=1, nrows=6, height_ratios=[1, 1, 1, 2, 1, 1])
+            grid = self.fig.add_gridspec(
+                ncols=1, nrows=6, height_ratios=[1, 1, 1, 2, 1, 1]
+            )
 
             ax1 = self.fig.add_subplot(grid[0, 0])
-            #ax1.plot(np.arange(n_measure), self.I)
-            #ax1.plot(np.arange(n_measure), self.Q)
+            # ax1.plot(np.arange(n_measure), self.I)
+            # ax1.plot(np.arange(n_measure), self.Q)
             ax1.plot(np.arange(n_measure), d1)
             ax1.plot(np.arange(n_measure), d2)
 
@@ -293,13 +338,15 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             # s = np.linspace(0, 2 * np.pi)
             # ax4.plot(ref_pos[0, 0] + np.sqrt(var) * np.cos(s), ref_pos[0, 1] + np.sqrt(var) * np.sin(s), 'k')
             # ax4.plot(ref_pos[1, 0] + np.sqrt(var) * np.cos(s), ref_pos[1, 1] + np.sqrt(var) * np.sin(s), 'k')
-            ax4.plot(0.0, 0.0, 'r.')
-            ax4.axvline(pos1x - sigma1, color='C0')
-            ax4.axvline(pos2x + sigma2, color='C1')
+            ax4.plot(0.0, 0.0, "r.")
+            ax4.axvline(pos1x - sigma1, color="C0")
+            ax4.axvline(pos2x + sigma2, color="C1")
             ax4.axis("equal")
 
             ax5 = self.fig.add_subplot(grid[4, 0])
-            ax5.bar(np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8)
+            ax5.bar(
+                np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8
+            )
             ax5.set_yscale("symlog")
 
             ax6 = self.fig.add_subplot(grid[5, 0])
@@ -313,9 +360,9 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         """
 
         pos1x = ref_pos[0, 0].item()
-        pos1y = ref_pos[0, 1].item()
+        ref_pos[0, 1].item()
         pos2x = ref_pos[1, 0].item()
-        pos2y = ref_pos[1, 1].item()
+        ref_pos[1, 1].item()
 
         # var1 = dist[0].item()
         # var2 = dist[1].item()
@@ -323,7 +370,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         sigma2 = dist[1].item()
 
         with program() as quantumJumps:
-
             N = declare(int)
             Is = declare(fixed)
             Qs = declare(fixed)
@@ -339,14 +385,30 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
             with for_(N, 0, N < n_measure, N + 1):
                 # measurement block:
-                measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                measure(
+                    "readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs)
+                )
+                measure(
+                    "readout_ref",
+                    "reference",
+                    None,
+                    ("integW_Ir", Ir),
+                    ("integW_Qr", Qr),
+                )
 
                 wait(t_wait, "signal")
 
                 # calculations:
-                assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
-                assign(Q, (Is << bit_shift) * (Qr << bit_shift) - (Qs << bit_shift) * (Ir << bit_shift))
+                assign(
+                    I,
+                    (Is << bit_shift) * (Ir << bit_shift)
+                    + (Qs << bit_shift) * (Qr << bit_shift),
+                )
+                assign(
+                    Q,
+                    (Is << bit_shift) * (Qr << bit_shift)
+                    - (Qs << bit_shift) * (Ir << bit_shift),
+                )
 
                 # assign(d1, (I - pos1x) * (I - pos1x) + (Q - pos1y) * (Q - pos1y))
                 # assign(d2, (I - pos2x) * (I - pos2x) + (Q - pos2y) * (Q - pos2y))
@@ -409,7 +471,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
                 save(Q, "Q")
                 save(state, "state")
 
-
         self.program = quantumJumps
         job = self.qm_config.qm.execute(self.program, duration_limit=0, data_limit=0)
         job.wait_for_all_results()
@@ -423,15 +484,24 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         hist_down = res.variable_results.hist_down.values
 
         hist_up, _ = np.histogram(hist_up[:-1], bins=np.arange(hist_up.max() + 1) + 0.5)
-        hist_down, _ = np.histogram(hist_down[:-1], bins=np.arange(hist_down.max() + 1) + 0.5)
+        hist_down, _ = np.histogram(
+            hist_down[:-1], bins=np.arange(hist_down.max() + 1) + 0.5
+        )
 
         # qkit data storage
-        self.exp_name = "quantum_jump_hist_{}us".format(4 * t_wait / 1000).replace('.', 'p')
-        self.coords = {"t": [self.t / 1000, "us"],
-                       "hist_up": [hist_up, "1"],
-                       "hist_down": [hist_down, "1"]}   # "hist_down_range": [np.arange(hist_down.size) + 1, "1"]
-        self.values = {"state": [self.state, ["t"], "state"],
-                       "I": [self.I, ["t"], "V"], "Q": [self.Q, ["t"], "V"]}
+        self.exp_name = f"quantum_jump_hist_{4 * t_wait / 1000}us".replace(
+            ".", "p"
+        )
+        self.coords = {
+            "t": [self.t / 1000, "us"],
+            "hist_up": [hist_up, "1"],
+            "hist_down": [hist_down, "1"],
+        }  # "hist_down_range": [np.arange(hist_down.size) + 1, "1"]
+        self.values = {
+            "state": [self.state, ["t"], "state"],
+            "I": [self.I, ["t"], "V"],
+            "Q": [self.Q, ["t"], "V"],
+        }
 
         if plot:
             t_rep = np.median(self.t[1:] - self.t[:-1]) / 1000
@@ -441,51 +511,76 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
             ax1 = self.fig.add_subplot(grid[0, 0])
             ax1.scatter(self.I, self.Q, 0.1)
-            #s = np.linspace(0, 2 * np.pi)
-            #ax1.plot(ref_pos[0, 0] + np.sqrt(var) * np.cos(s), ref_pos[0, 1] + np.sqrt(var) * np.sin(s), 'k')
-            #ax1.plot(ref_pos[1, 0] + np.sqrt(var) * np.cos(s), ref_pos[1, 1] + np.sqrt(var) * np.sin(s), 'k')
-            ax1.plot(0.0, 0.0, 'r.')
-            ax1.axvline(pos1x - sigma1, color='C0')
-            ax1.axvline(pos2x + sigma2, color='C1')
+            # s = np.linspace(0, 2 * np.pi)
+            # ax1.plot(ref_pos[0, 0] + np.sqrt(var) * np.cos(s), ref_pos[0, 1] + np.sqrt(var) * np.sin(s), 'k')
+            # ax1.plot(ref_pos[1, 0] + np.sqrt(var) * np.cos(s), ref_pos[1, 1] + np.sqrt(var) * np.sin(s), 'k')
+            ax1.plot(0.0, 0.0, "r.")
+            ax1.axvline(pos1x - sigma1, color="C0")
+            ax1.axvline(pos2x + sigma2, color="C1")
             ax1.axis("equal")
 
             # Maximum likelihood fits and histogram plots
             m = np.sum(hist_down)
             n = np.sum(hist_down * np.arange(hist_down.size))
             p = n / (m + n)
-            t_up = - t_rep / np.log(p)
+            t_up = -t_rep / np.log(p)
             p_down = m * (1 - p) * p ** np.arange(hist_down.size)
 
             ax2 = self.fig.add_subplot(grid[1, 0])
-            ax2.text(0.9, 0.9, r'$p$ = {:.6f}'.format(p) + "\n" + r'$t_\uparrow$= {:.6f}'.format(t_up),
-                     horizontalalignment='right', verticalalignment='top', transform=ax2.transAxes)
-            ax2.bar(np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8)
+            ax2.text(
+                0.9,
+                0.9,
+                fr"$p$ = {p:.6f}" + "\n" + fr"$t_\uparrow$= {t_up:.6f}",
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=ax2.transAxes,
+            )
+            ax2.bar(
+                np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8
+            )
             ax2.plot(np.arange(hist_down.size), p_down, color="C0")
             ax2.set_yscale("symlog")
 
             m = np.sum(hist_up)
             n = np.sum(hist_up * np.arange(hist_up.size))
             p = n / (m + n)
-            t_down = - t_rep / np.log(p)
+            t_down = -t_rep / np.log(p)
             p_up = m * (1 - p) * p ** np.arange(hist_up.size)
 
             ax3 = self.fig.add_subplot(grid[2, 0])
-            ax3.text(0.9, 0.9, r'$p$ = {:.6f}'.format(p) + "\n" + r'$t_\downarrow$ = {:.6f}'.format(t_down),
-                     horizontalalignment='right', verticalalignment='top', transform=ax3.transAxes)
+            ax3.text(
+                0.9,
+                0.9,
+                fr"$p$ = {p:.6f}"
+                + "\n"
+                + fr"$t_\downarrow$ = {t_down:.6f}",
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=ax3.transAxes,
+            )
             ax3.bar(np.arange(hist_up.size), hist_up, color="C1", width=1.0, alpha=0.8)
             ax3.plot(np.arange(hist_up.size), p_up, color="C1")
             ax3.set_yscale("symlog")
 
     @QmQkitWrapper.measure
-    def quantum_jump_hist_stab(self, n_measure, n_stab, ref_pos, dist, t_wait=25,
-                               stab_state=True, start_state=False, plot=True):
-        """ Workaround
+    def quantum_jump_hist_stab(
+        self,
+        n_measure,
+        n_stab,
+        ref_pos,
+        dist,
+        t_wait=25,
+        stab_state=True,
+        start_state=False,
+        plot=True,
+    ):
+        """Workaround
         The regions defined by the variance must not overlap
         """
         pos1x = ref_pos[0, 0].item()
-        pos1y = ref_pos[0, 1].item()
+        ref_pos[0, 1].item()
         pos2x = ref_pos[1, 0].item()
-        pos2y = ref_pos[1, 1].item()
+        ref_pos[1, 1].item()
 
         # var1 = dist[0].item()
         # var2 = dist[1].item()
@@ -500,7 +595,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             init_state = -1
 
         with program() as quantumJumps:
-
             N = declare(int)
             Is = declare(fixed)
             Qs = declare(fixed)
@@ -515,18 +609,32 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             count = declare(int, value=0)
 
             with for_(N, 0, N < n_measure, N + 1):
-
                 with if_(N < n_stab):
-
                     wait(t_wait, "qubit")  # wait between measurements
 
                     # measurement block:
                     align("qubit", "signal", "reference")
-                    measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                    measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                    measure(
+                        "readout_sig",
+                        "signal",
+                        None,
+                        ("integW_Is", Is),
+                        ("integW_Qs", Qs),
+                    )
+                    measure(
+                        "readout_ref",
+                        "reference",
+                        None,
+                        ("integW_Ir", Ir),
+                        ("integW_Qr", Qr),
+                    )
 
                     # calculations:
-                    assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
+                    assign(
+                        I,
+                        (Is << bit_shift) * (Ir << bit_shift)
+                        + (Qs << bit_shift) * (Qr << bit_shift),
+                    )
 
                     # wait ring down resonator TODO???
 
@@ -548,22 +656,41 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
                 with else_():
                     with if_(N == n_stab):
-                        if (start_state != stab_state):
+                        if start_state != stab_state:
                             play("pi_pulse", "qubit")
                         else:
                             wait(12, "qubit")  # qubit pulse length
                     with else_():
-
                         wait(t_wait, "signal")
 
                         # measurement block:
                         align("qubit", "signal", "reference")
-                        measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                        measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                        measure(
+                            "readout_sig",
+                            "signal",
+                            None,
+                            ("integW_Is", Is),
+                            ("integW_Qs", Qs),
+                        )
+                        measure(
+                            "readout_ref",
+                            "reference",
+                            None,
+                            ("integW_Ir", Ir),
+                            ("integW_Qr", Qr),
+                        )
 
                         # calculations:
-                        assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
-                        assign(Q, (Is << bit_shift) * (Qr << bit_shift) - (Qs << bit_shift) * (Ir << bit_shift))
+                        assign(
+                            I,
+                            (Is << bit_shift) * (Ir << bit_shift)
+                            + (Qs << bit_shift) * (Qr << bit_shift),
+                        )
+                        assign(
+                            Q,
+                            (Is << bit_shift) * (Qr << bit_shift)
+                            - (Qs << bit_shift) * (Ir << bit_shift),
+                        )
 
                         # assign(d1, (I - pos1x) * (I - pos1x) + (Q - pos1y) * (Q - pos1y))
                         # assign(d2, (I - pos2x) * (I - pos2x) + (Q - pos2y) * (Q - pos2y))
@@ -605,23 +732,32 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         hist_down = res.variable_results.hist_down.values
 
         hist_up, _ = np.histogram(hist_up[:-1], bins=np.arange(hist_up.max() + 1) + 0.5)
-        hist_down, _ = np.histogram(hist_down[:-1], bins=np.arange(hist_down.max() + 1) + 0.5)
+        hist_down, _ = np.histogram(
+            hist_down[:-1], bins=np.arange(hist_down.max() + 1) + 0.5
+        )
 
         flip = res.variable_results.flip.values
         t_flip = res.variable_results.flip.ts_nsec
         flip_hist, _ = np.histogram(flip, bins=np.arange(n_stab + 1) - 0.5)
 
         # qkit data storage
-        self.exp_name = "quantum_jump_hist_stab_{}_{}_{}_{}us".format(n_stab, stab_state, start_state, 4 * t_wait / 1000).replace('.', 'p')
-        self.coords = {"t": [self.t / 1000, "us"],
-                       "hist_up": [hist_up, "1"],
-                       "hist_down": [hist_down, "1"],
-                       "flip_index": [np.arange(n_stab), "#"],
-                       "flip": [flip, "1"],
-                       "t_flip": [t_flip / 1000, "ns"]}
-        self.values = {"state": [self.state, ["t"], "state"],
-                       "I": [self.I, ["t"], "V"], "Q": [self.Q, ["t"], "V"],
-                       "flip_hist": [flip_hist, ["flip_index"], "1"]}
+        self.exp_name = "quantum_jump_hist_stab_{}_{}_{}_{}us".format(
+            n_stab, stab_state, start_state, 4 * t_wait / 1000
+        ).replace(".", "p")
+        self.coords = {
+            "t": [self.t / 1000, "us"],
+            "hist_up": [hist_up, "1"],
+            "hist_down": [hist_down, "1"],
+            "flip_index": [np.arange(n_stab), "#"],
+            "flip": [flip, "1"],
+            "t_flip": [t_flip / 1000, "ns"],
+        }
+        self.values = {
+            "state": [self.state, ["t"], "state"],
+            "I": [self.I, ["t"], "V"],
+            "Q": [self.Q, ["t"], "V"],
+            "flip_hist": [flip_hist, ["flip_index"], "1"],
+        }
 
         if plot:
             t_rep = np.median(self.t[1:] - self.t[:-1]) / 1000
@@ -634,48 +770,66 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             # s = np.linspace(0, 2 * np.pi)
             # ax1.plot(ref_pos[0, 0] + np.sqrt(var) * np.cos(s), ref_pos[0, 1] + np.sqrt(var) * np.sin(s), 'k')
             # ax1.plot(ref_pos[1, 0] + np.sqrt(var) * np.cos(s), ref_pos[1, 1] + np.sqrt(var) * np.sin(s), 'k')
-            ax1.plot(0.0, 0.0, 'r.')
-            ax1.axvline(pos1x - sigma1, color='C0')
-            ax1.axvline(pos2x + sigma2, color='C1')
+            ax1.plot(0.0, 0.0, "r.")
+            ax1.axvline(pos1x - sigma1, color="C0")
+            ax1.axvline(pos2x + sigma2, color="C1")
             ax1.axis("equal")
 
             # Maximum likelihood fits and histogram plots
             m = np.sum(hist_down)
             n = np.sum(hist_down * np.arange(hist_down.size))
             p = n / (m + n)
-            t_up = - t_rep / np.log(p)
+            t_up = -t_rep / np.log(p)
             p_down = m * (1 - p) * p ** np.arange(hist_down.size)
 
             ax2 = self.fig.add_subplot(grid[1, 0])
-            ax2.text(0.9, 0.9, r'$p$ = {:.6f}'.format(p) + "\n" + r'$t_\uparrow$= {:.6f}'.format(t_up),
-                     horizontalalignment='right', verticalalignment='top', transform=ax2.transAxes)
-            ax2.bar(np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8)
+            ax2.text(
+                0.9,
+                0.9,
+                fr"$p$ = {p:.6f}" + "\n" + fr"$t_\uparrow$= {t_up:.6f}",
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=ax2.transAxes,
+            )
+            ax2.bar(
+                np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8
+            )
             ax2.plot(np.arange(hist_down.size), p_down, color="C0")
             ax2.set_yscale("symlog")
 
             m = np.sum(hist_up)
             n = np.sum(hist_up * np.arange(hist_up.size))
             p = n / (m + n)
-            t_down = - t_rep / np.log(p)
+            t_down = -t_rep / np.log(p)
             p_up = m * (1 - p) * p ** np.arange(hist_up.size)
 
             ax3 = self.fig.add_subplot(grid[2, 0])
-            ax3.text(0.9, 0.9, r'$p$ = {:.6f}'.format(p) + "\n" + r'$t_\downarrow$ = {:.6f}'.format(t_down),
-                     horizontalalignment='right', verticalalignment='top', transform=ax3.transAxes)
+            ax3.text(
+                0.9,
+                0.9,
+                fr"$p$ = {p:.6f}"
+                + "\n"
+                + fr"$t_\downarrow$ = {t_down:.6f}",
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=ax3.transAxes,
+            )
             ax3.bar(np.arange(hist_up.size), hist_up, color="C1", width=1.0, alpha=0.8)
             ax3.plot(np.arange(hist_up.size), p_up, color="C1")
             ax3.set_yscale("symlog")
 
     @QmQkitWrapper.measure
-    def quantum_jump_hist_average(self, n_measure, ref_pos, dist, t_wait=25, avg=10, plot=True):
+    def quantum_jump_hist_average(
+        self, n_measure, ref_pos, dist, t_wait=25, avg=10, plot=True
+    ):
         """
         The regions defined by the variance must not overlap
         """
 
         pos1x = ref_pos[0, 0].item()
-        pos1y = ref_pos[0, 1].item()
+        ref_pos[0, 1].item()
         pos2x = ref_pos[1, 0].item()
-        pos2y = ref_pos[1, 1].item()
+        ref_pos[1, 1].item()
 
         # var1 = dist[0].item()
         # var2 = dist[1].item()
@@ -683,7 +837,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         sigma2 = dist[1].item()
 
         with program() as quantumJumps:
-
             N = declare(int)
             Is = declare(fixed)
             Qs = declare(fixed)
@@ -700,7 +853,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             iter_done = declare(int, value=-1)
 
             with for_(i, 0, i < avg, i + 1):
-
                 assign(state, 0)  # needed for initialization
 
                 wait(4, "qubit")  # 60ms maximum
@@ -710,16 +862,35 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
                 # align("qubit", "signal", "reference")
                 with for_(N, 0, N < n_measure, N + 1):
-
                     # measurement block:
-                    measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                    measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                    measure(
+                        "readout_sig",
+                        "signal",
+                        None,
+                        ("integW_Is", Is),
+                        ("integW_Qs", Qs),
+                    )
+                    measure(
+                        "readout_ref",
+                        "reference",
+                        None,
+                        ("integW_Ir", Ir),
+                        ("integW_Qr", Qr),
+                    )
 
                     wait(t_wait, "signal")
 
                     # calculations:
-                    assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
-                    assign(Q, (Is << bit_shift) * (Qr << bit_shift) - (Qs << bit_shift) * (Ir << bit_shift))
+                    assign(
+                        I,
+                        (Is << bit_shift) * (Ir << bit_shift)
+                        + (Qs << bit_shift) * (Qr << bit_shift),
+                    )
+                    assign(
+                        Q,
+                        (Is << bit_shift) * (Qr << bit_shift)
+                        - (Qs << bit_shift) * (Ir << bit_shift),
+                    )
 
                     # assign(d1, (I - pos1x) * (I - pos1x) + (Q - pos1y) * (Q - pos1y))
                     # assign(d2, (I - pos2x) * (I - pos2x) + (Q - pos2y) * (Q - pos2y))
@@ -772,19 +943,29 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         hist_up = res.variable_results.hist_up.values
         hist_down = res.variable_results.hist_down.values
 
-        hist_up, _ = np.histogram(hist_up[1:-1], bins=np.arange(hist_up.max() + 1) + 0.5)
-        hist_down, _ = np.histogram(hist_down[1:-1], bins=np.arange(hist_down.max() + 1) + 0.5)
+        hist_up, _ = np.histogram(
+            hist_up[1:-1], bins=np.arange(hist_up.max() + 1) + 0.5
+        )
+        hist_down, _ = np.histogram(
+            hist_down[1:-1], bins=np.arange(hist_down.max() + 1) + 0.5
+        )
 
         # qkit data storage
-        self.exp_name = "quantum_jump_hist_{}us".format(4 * t_wait / 1000).replace('.', 'p')
-        self.coords = {"t": [self.t / 1000, "us"],
-                       "hist_up": [hist_up, "1"],
-                       "hist_down": [hist_down, "1"]}  # "hist_down_range": [np.arange(hist_down.size) + 1, "1"]
-        self.values = {"state": [self.state, ["t"], "state"],
-                       "I": [self.I, ["t"], "V"], "Q": [self.Q, ["t"], "V"]}
+        self.exp_name = f"quantum_jump_hist_{4 * t_wait / 1000}us".replace(
+            ".", "p"
+        )
+        self.coords = {
+            "t": [self.t / 1000, "us"],
+            "hist_up": [hist_up, "1"],
+            "hist_down": [hist_down, "1"],
+        }  # "hist_down_range": [np.arange(hist_down.size) + 1, "1"]
+        self.values = {
+            "state": [self.state, ["t"], "state"],
+            "I": [self.I, ["t"], "V"],
+            "Q": [self.Q, ["t"], "V"],
+        }
 
         if plot:
-
             t_rep = np.median(self.t[1:] - self.t[:-1]) / 1000
 
             self.fig.clear()
@@ -795,49 +976,76 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             # s = np.linspace(0, 2 * np.pi)
             # self.ax1.plot(ref_pos[0, 0] + np.sqrt(var) * np.cos(s), ref_pos[0, 1] + np.sqrt(var) * np.sin(s), 'k')
             # self.ax1.plot(ref_pos[1, 0] + np.sqrt(var) * np.cos(s), ref_pos[1, 1] + np.sqrt(var) * np.sin(s), 'k')
-            self.ax1.plot(0.0, 0.0, 'r.')
-            self.ax1.axvline(pos1x - sigma1, color='C0')
-            self.ax1.axvline(pos2x + sigma2, color='C1')
+            self.ax1.plot(0.0, 0.0, "r.")
+            self.ax1.axvline(pos1x - sigma1, color="C0")
+            self.ax1.axvline(pos2x + sigma2, color="C1")
             self.ax1.axis("equal")
 
             # Maximum likelihood fits and histogram plots
             m = np.sum(hist_down)
             n = np.sum(hist_down * np.arange(hist_down.size))
             p = n / (m + n)
-            t_up = - t_rep / np.log(p)
+            t_up = -t_rep / np.log(p)
             p_down = m * (1 - p) * p ** np.arange(hist_down.size)
 
             ax2 = self.fig.add_subplot(grid[1, 0])
-            ax2.text(0.9, 0.9, r'$p$ = {:.6f}'.format(p) + "\n" + r'$t_\uparrow$= {:.6f}'.format(t_up),
-                     horizontalalignment='right', verticalalignment='top', transform=ax2.transAxes)
-            ax2.bar(np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8)
+            ax2.text(
+                0.9,
+                0.9,
+                fr"$p$ = {p:.6f}" + "\n" + fr"$t_\uparrow$= {t_up:.6f}",
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=ax2.transAxes,
+            )
+            ax2.bar(
+                np.arange(hist_down.size), hist_down, color="C0", width=1.0, alpha=0.8
+            )
             ax2.plot(np.arange(hist_down.size), p_down, color="C0")
             ax2.set_yscale("symlog")
 
             m = np.sum(hist_up)
             n = np.sum(hist_up * np.arange(hist_up.size))
             p = n / (m + n)
-            t_down = - t_rep / np.log(p)
+            t_down = -t_rep / np.log(p)
             p_up = m * (1 - p) * p ** np.arange(hist_up.size)
 
             ax3 = self.fig.add_subplot(grid[2, 0])
-            ax3.text(0.9, 0.9, r'$p$ = {:.6f}'.format(p) + "\n" + r'$t_\downarrow$ = {:.6f}'.format(t_down),
-                     horizontalalignment='right', verticalalignment='top', transform=ax3.transAxes)
+            ax3.text(
+                0.9,
+                0.9,
+                fr"$p$ = {p:.6f}"
+                + "\n"
+                + fr"$t_\downarrow$ = {t_down:.6f}",
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=ax3.transAxes,
+            )
             ax3.bar(np.arange(hist_up.size), hist_up, color="C1", width=1.0, alpha=0.8)
             ax3.plot(np.arange(hist_up.size), p_up, color="C1")
             ax3.set_yscale("symlog")
 
     @QmQkitWrapper.measure
-    def quantum_jump_hist_stab_avg(self, n_measure,  n_stab, ref_pos, dist, t_stab=200, t_measure=200,
-                                   stab_state=False, start_state=False, avg=100, plot=True):
+    def quantum_jump_hist_stab_avg(
+        self,
+        n_measure,
+        n_stab,
+        ref_pos,
+        dist,
+        t_stab=200,
+        t_measure=200,
+        stab_state=False,
+        start_state=False,
+        avg=100,
+        plot=True,
+    ):
         """
         The regions defined by the variance must not overlap
         """
 
         pos1x = ref_pos[0, 0].item()
-        pos1y = ref_pos[0, 1].item()
+        ref_pos[0, 1].item()
         pos2x = ref_pos[1, 0].item()
-        pos2y = ref_pos[1, 1].item()
+        ref_pos[1, 1].item()
 
         sigma1 = dist[0].item()
         sigma2 = dist[1].item()
@@ -846,7 +1054,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         print(threshold)
 
         with program() as quantumJumps:
-
             n = declare(int)
             i = declare(int)
             j = declare(int)
@@ -865,7 +1072,6 @@ class QuantumJumpMonitoring(QmQkitWrapper):
             count = declare(int)
 
             with for_(i, 0, i < avg, i + 1):
-
                 save(iter_done, "flip")
                 save(iter_done, "hist_down")
                 save(iter_done, "hist_up")
@@ -873,14 +1079,25 @@ class QuantumJumpMonitoring(QmQkitWrapper):
                 assign(state, 0)  # initialization
 
                 # measurement block:
-                measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                measure(
+                    "readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs)
+                )
+                measure(
+                    "readout_ref",
+                    "reference",
+                    None,
+                    ("integW_Ir", Ir),
+                    ("integW_Qr", Qr),
+                )
 
                 # calculations:
-                assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
+                assign(
+                    I,
+                    (Is << bit_shift) * (Ir << bit_shift)
+                    + (Qs << bit_shift) * (Qr << bit_shift),
+                )
 
                 with for_(j, 0, j < n_stab, j + 1):  # stabilization for n_stab
-
                     # wait ring down resonator to have a more precise pi pulse???
 
                     if stab_state:
@@ -902,11 +1119,27 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
                     # measurement block:
                     align("qubit", "signal", "reference")
-                    measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                    measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                    measure(
+                        "readout_sig",
+                        "signal",
+                        None,
+                        ("integW_Is", Is),
+                        ("integW_Qs", Qs),
+                    )
+                    measure(
+                        "readout_ref",
+                        "reference",
+                        None,
+                        ("integW_Ir", Ir),
+                        ("integW_Qr", Qr),
+                    )
 
                     # calculations:
-                    assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
+                    assign(
+                        I,
+                        (Is << bit_shift) * (Ir << bit_shift)
+                        + (Qs << bit_shift) * (Qr << bit_shift),
+                    )
 
                 align("qubit", "signal", "reference")
                 if start_state:
@@ -926,16 +1159,35 @@ class QuantumJumpMonitoring(QmQkitWrapper):
 
                 align("qubit", "signal", "reference")
                 with for_(n, 0, n < n_measure, n + 1):
-
                     # measurement block:
-                    measure("readout_sig", "signal", None, ("integW_Is", Is), ("integW_Qs", Qs))
-                    measure("readout_ref", "reference", None, ("integW_Ir", Ir), ("integW_Qr", Qr))
+                    measure(
+                        "readout_sig",
+                        "signal",
+                        None,
+                        ("integW_Is", Is),
+                        ("integW_Qs", Qs),
+                    )
+                    measure(
+                        "readout_ref",
+                        "reference",
+                        None,
+                        ("integW_Ir", Ir),
+                        ("integW_Qr", Qr),
+                    )
 
                     wait(t_measure, "signal")
 
                     # calculations:
-                    assign(I, (Is << bit_shift) * (Ir << bit_shift) + (Qs << bit_shift) * (Qr << bit_shift))
-                    assign(Q, (Is << bit_shift) * (Qr << bit_shift) - (Qs << bit_shift) * (Ir << bit_shift))
+                    assign(
+                        I,
+                        (Is << bit_shift) * (Ir << bit_shift)
+                        + (Qs << bit_shift) * (Qr << bit_shift),
+                    )
+                    assign(
+                        Q,
+                        (Is << bit_shift) * (Qr << bit_shift)
+                        - (Qs << bit_shift) * (Ir << bit_shift),
+                    )
 
                     # assign(d1, (I - pos1x) * (I - pos1x) + (Q - pos1y) * (Q - pos1y))
                     # assign(d2, (I - pos2x) * (I - pos2x) + (Q - pos2y) * (Q - pos2y))
@@ -987,8 +1239,7 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         samples.con1.plot()
         plt.show()
 
-
-        #if plot:
+        # if plot:
         #    self.fig.clear()
         #    grid = self.fig.add_gridspec(ncols=1, nrows=3, height_ratios=[2, 1, 1])
         #
@@ -999,8 +1250,7 @@ class QuantumJumpMonitoring(QmQkitWrapper):
         #    # self.ax1.plot(ref_pos[1, 0] + np.sqrt(var) * np.cos(s), ref_pos[1, 1] + np.sqrt(var) * np.sin(s), 'k')
         #    ax1.plot(0.0, 0.0, 'r.')
 
-
-        #job = self.qm_config.qm.execute(self.program, duration_limit=0, data_limit=0)
+        # job = self.qm_config.qm.execute(self.program, duration_limit=0, data_limit=0)
 
         # job.wait_for_all_results()
         # res = job.get_results()

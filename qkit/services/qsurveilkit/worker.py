@@ -15,37 +15,38 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
+from threading import Thread
 
-from threading import Thread 
-        
+
 class IO_worker(Thread):
-    '''
-    Worker class which triggers the acquisition of all parameters from the instruments via the server. 
+    """
+    Worker class which triggers the acquisition of all parameters from the instruments via the server.
     Inherits from thread.
-    '''
-    def __init__(self,DATA):
+    """
+
+    def __init__(self, DATA):
         self.DATA = DATA
         Thread.__init__(self)
-        
+
     def run(self):
-        '''
+        """
         Run method of the worker thread.
-        '''
-        print('Worker started.')
+        """
+        print("Worker started.")
         while True:
             for p in self.DATA.parameters:
                 if p.logging:
                     p.create_logfile()
-            while int(time.strftime("%H%M",time.localtime(time.time()+10))) != 0:
-                #readout all parameters
+            while int(time.strftime("%H%M", time.localtime(time.time() + 10))) != 0:
+                # readout all parameters
                 for p in self.DATA.parameters:
                     if p.schedule():
                         p.store_value(p.data_request_object())
-                        if self.DATA.debug: print('readout %s.'%p.name)
-                                
+                        if self.DATA.debug:
+                            print("readout %s." % p.name)
+
                 time.sleep(self.DATA.cycle_time)
             for p in self.DATA.parameters:
-                if p.logging: p.close_logfile()
+                if p.logging:
+                    p.close_logfile()
             time.sleep(70)
-
-

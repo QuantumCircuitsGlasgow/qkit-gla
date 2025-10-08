@@ -22,8 +22,7 @@
 from PIL import Image, ImageDraw
 
 
-class ssd1306():
-
+class ssd1306:
     def __init__(self, bus, address=0x3C):
         self.cmd_mode = 0x00
         self.data_mode = 0x40
@@ -32,26 +31,38 @@ class ssd1306():
         self.width = 128
         self.height = 64
         self.pages = int(self.height / 8)
-        self.image = Image.new('1', (self.width, self.height))
-        self.canvas = ImageDraw.Draw(self.image) # this is a "draw" object for preparing display contents
+        self.image = Image.new("1", (self.width, self.height))
+        self.canvas = ImageDraw.Draw(
+            self.image
+        )  # this is a "draw" object for preparing display contents
 
         self._command(
             const.DISPLAYOFF,
-            const.SETDISPLAYCLOCKDIV, 0x80,
-            const.SETMULTIPLEX,       0x3F,
-            const.SETDISPLAYOFFSET,   0x00,
+            const.SETDISPLAYCLOCKDIV,
+            0x80,
+            const.SETMULTIPLEX,
+            0x3F,
+            const.SETDISPLAYOFFSET,
+            0x00,
             const.SETSTARTLINE,
-            const.CHARGEPUMP,         0x14,
-            const.MEMORYMODE,         0x00,
+            const.CHARGEPUMP,
+            0x14,
+            const.MEMORYMODE,
+            0x00,
             const.SEGREMAP,
             const.COMSCANDEC,
-            const.SETCOMPINS,         0x12,
-            const.SETCONTRAST,        0xCF,
-            const.SETPRECHARGE,       0xF1,
-            const.SETVCOMDETECT,      0x40,
+            const.SETCOMPINS,
+            0x12,
+            const.SETCONTRAST,
+            0xCF,
+            const.SETPRECHARGE,
+            0xF1,
+            const.SETVCOMDETECT,
+            0x40,
             const.DISPLAYALLON_RESUME,
             const.NORMALDISPLAY,
-            const.DISPLAYON)
+            const.DISPLAYON,
+        )
 
     def _command(self, *cmd):
         """
@@ -59,7 +70,7 @@ class ssd1306():
         device - maximum allowed is 32 bytes in one go.
         LIMIT ON ARDUINO: CMD BYTE + 31 = 32, SO LIMIT TO 31     bl
         """
-        assert(len(cmd) <= 31)
+        assert len(cmd) <= 31
         self.bus.write_i2c_block_data(self.addr, self.cmd_mode, list(cmd))
 
     def _data(self, data):
@@ -71,8 +82,9 @@ class ssd1306():
         """
 
         for i in range(0, len(data), 31):
-            self.bus.write_i2c_block_data(self.addr, self.data_mode, list(data[i:i+31]))
-
+            self.bus.write_i2c_block_data(
+                self.addr, self.data_mode, list(data[i : i + 31])
+            )
 
     def display(self):
         """
@@ -81,14 +93,19 @@ class ssd1306():
         """
 
         self._command(
-            const.COLUMNADDR, 0x00, self.width-1,  # Column start/end address
-            const.PAGEADDR,   0x00, self.pages-1)  # Page start/end address
+            const.COLUMNADDR,
+            0x00,
+            self.width - 1,  # Column start/end address
+            const.PAGEADDR,
+            0x00,
+            self.pages - 1,
+        )  # Page start/end address
 
         pix = list(self.image.getdata())
         step = self.width * 8
         buf = []
         for y in range(0, self.pages * step, step):
-            i = y + self.width-1
+            i = y + self.width - 1
             while i >= y:
                 byte = 0
                 for n in range(0, step, self.width):
@@ -98,10 +115,12 @@ class ssd1306():
                 buf.append(byte)
                 i -= 1
 
-        self._data(buf) # push out the whole lot
+        self._data(buf)  # push out the whole lot
 
     def cls(self):
-        self.canvas.rectangle((0, 0, self.width-1, self.height-1), outline=0, fill=0)
+        self.canvas.rectangle(
+            (0, 0, self.width - 1, self.height - 1), outline=0, fill=0
+        )
         self.display()
 
     def onoff(self, onoff):

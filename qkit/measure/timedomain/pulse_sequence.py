@@ -1,10 +1,10 @@
 """Module to provide a high-level possibility to arange pulses for an experiment."""
-from enum import Enum
-import numpy as np
 import inspect
-from typing import Dict, Set, List, Union, Callable, Any, Tuple
 import logging
+from enum import Enum
+from typing import Any, Callable, Union
 
+import numpy as np
 
 plot_enable = False
 try:
@@ -25,13 +25,13 @@ class Shape(np.vectorize):
         self, name: str, func: Callable[[float], float], *args: Any, **kwargs: Any
     ):
         self.name = name
-        super(Shape, self).__init__(func, *args, **kwargs)
+        super().__init__(func, *args, **kwargs)
 
     def __mul__(self, other):
         return Shape(self.name, lambda x: self.pyfunc(x) * other.pyfunc(x))
 
 
-class ShapeLibClass(object):
+class ShapeLibClass:
     """
     Object containing pre-defined pulse shapes.
     Currently implemented: rect, gauss
@@ -45,7 +45,7 @@ class ShapeLibClass(object):
             * self.rect
         )
         self.ramp = Shape("ramp", lambda x: x) * self.rect
-        self.sqrfct = Shape("sqrfct", lambda x: x ** 2) * self.rect
+        self.sqrfct = Shape("sqrfct", lambda x: x**2) * self.rect
 
 
 # Make ShapeLib a singleton:
@@ -74,13 +74,13 @@ class ParametrizedValue:
             value = float(value)
         self.name = name
         self.value = value
-        self._variables: Set[str] = set()
+        self._variables: set[str] = set()
         if callable(value):
             self._variables.update(inspect.getfullargspec(self.value).args)
 
     def __call__(self, **kwargs: Any) -> float:
         if self.is_parametrized:
-            useful_variables: Dict = {}
+            useful_variables: dict = {}
             for key, value in kwargs.items():
                 if key in self.variables:
                     useful_variables[key] = value
@@ -135,7 +135,7 @@ class ParametrizedValue:
                 )
 
     @property
-    def variables(self) -> Set[str]:
+    def variables(self) -> set[str]:
         return self._variables
 
     @property
@@ -143,7 +143,7 @@ class ParametrizedValue:
         return callable(self.value)
 
 
-class Pulse(object):
+class Pulse:
     """
     Class to describe a single pulse.
     """
@@ -255,7 +255,7 @@ class Pulse(object):
         return envelope
 
     @property
-    def variable_names(self) -> Set[str]:
+    def variable_names(self) -> set[str]:
         """A set with the names of all variables necessary to calculate the pulse length and amplitude."""
         return self.length.variables.union(self.amplitude.variables)
 
@@ -265,7 +265,7 @@ class Pulse(object):
         return self.length.is_parametrized or self.amplitude.is_parametrized
 
 
-class PulseSequence(object):
+class PulseSequence:
     """
     Class for aranging pulses for a time-domain experiment.
     Sequence objects are callable, returning the sequence envelope for a given time step.
@@ -292,10 +292,10 @@ class PulseSequence(object):
                         The real part encodes the dc offset of I, the imaginary part is the dc offset of Q.
                         This correction is added to the dc offset during the pulse (i.e. of the pulse object).
         """
-        self._sequence: List[List[Pulse]] = []
+        self._sequence: list[list[Pulse]] = []
         self._next_pulse_is_parallel = False
-        self._pulses: Dict[str, Pulse] = {}
-        self._variables: Set[str] = set()
+        self._pulses: dict[str, Pulse] = {}
+        self._variables: set[str] = set()
         self._sample = sample
         self.dc_corr: float = dc_corr
         try:
@@ -303,7 +303,7 @@ class PulseSequence(object):
         except AttributeError:
             self.samplerate = samplerate
 
-        self._color_palette: List[str] = [
+        self._color_palette: list[str] = [
             "C0",
             "C1",
             "C2",
@@ -320,7 +320,7 @@ class PulseSequence(object):
             "k",
             "m",
         ]
-        self._pulse_cols: Dict[PulseType, str] = {
+        self._pulse_cols: dict[PulseType, str] = {
             PulseType.Readout: "C7",
             PulseType.Wait: "w",
         }
@@ -331,7 +331,7 @@ class PulseSequence(object):
         include_readout: bool = False,
         samplerate: float = None,
         **variables: Any
-    ) -> Union[Tuple[np.ndarray, int], None]:
+    ) -> Union[tuple[np.ndarray, int], None]:
         """
         Returns the envelope of the whole pulse sequence for the input time.
         Also returns the index where the readout pulse starts.
@@ -447,7 +447,7 @@ class PulseSequence(object):
         if pulse.name is None or not isinstance(pulse.name, str):
             logging.error("The pulse name has to be a string and must not be None.")
             return self
-        elif pulse.name in self._pulses and not self._pulses[pulse.name] is pulse:
+        elif pulse.name in self._pulses and self._pulses[pulse.name] is not pulse:
             logging.error(
                 "Another pulse with the same name ({name}) is already present in the sequence!".format(
                     name=pulse.name
@@ -456,7 +456,7 @@ class PulseSequence(object):
             return self
 
         # Add the pulse to the pulse dictionary if it is not yet present
-        if not pulse.name in self._pulses:
+        if pulse.name not in self._pulses:
             self._pulses[pulse.name] = pulse
 
             # Keep track of all variable names: Add them to a set of unique variable names
@@ -496,7 +496,7 @@ class PulseSequence(object):
         """
 
         def compose_name(index: int) -> str:
-            return "wait[{}]".format(index)
+            return f"wait[{index}]"
 
         if name is None:
             # Find a unused name for the next wait "pulse"
@@ -526,7 +526,7 @@ class PulseSequence(object):
         """
 
         def compose_name(index: int) -> str:
-            return "readout[{}]".format(index)
+            return f"readout[{index}]"
 
         if pulse is None:
             # Find a unused name for the next readout pulse
@@ -558,16 +558,16 @@ class PulseSequence(object):
         return self.add(readout_pulse, skip)
 
     @property
-    def variable_names(self) -> Set[str]:
+    def variable_names(self) -> set[str]:
         """A set with the names of all variables present in this sequence."""
         return self._variables
 
-    def get_pulses(self) -> List[Dict[str, Any]]:
+    def get_pulses(self) -> list[dict[str, Any]]:
         """
         Returns a list of all pulses and their properties.
         The properties of each pulse are stored in a dictionary with keys: name, shape, length, skip value
         """
-        dict_list: List[Dict[str, Any]] = []
+        dict_list: list[dict[str, Any]] = []
         for time_slice in self._sequence:
             for i, pulse in enumerate(time_slice):
                 # This is more for legacy reasons
@@ -584,12 +584,12 @@ class PulseSequence(object):
         return dict_list
 
     @property
-    def pulses(self) -> Dict[str, Pulse]:
+    def pulses(self) -> dict[str, Pulse]:
         """A dictionary containing pulse name as key and pulse as value"""
         return self._pulses
 
     @property
-    def sequence(self) -> List[List[Pulse]]:
+    def sequence(self) -> list[list[Pulse]]:
         """A List of Lists containing pulses. If pulses are paralles they will be in the same sublist"""
         return self._sequence
 
@@ -604,7 +604,7 @@ class PulseSequence(object):
         amp = 1
         ampmax = 1
         remaining_colors = self._color_palette[:]
-        pulse_colors: Dict[str, str] = {}
+        pulse_colors: dict[str, str] = {}
 
         for i, time_slice in enumerate(self._sequence):
             for amp, pulse in enumerate(reversed(time_slice)):
@@ -618,9 +618,9 @@ class PulseSequence(object):
                 )
 
                 if pulse.iq_frequency not in [0, None]:
-                    text += "\n\n f_iq = {:.0f} MHz".format(pulse.iq_frequency / 1e6)
+                    text += f"\n\n f_iq = {pulse.iq_frequency / 1e6:.0f} MHz"
                     if pulse.phase != 0:
-                        text += "\n phase = {:.0f} deg".format(pulse.phase)
+                        text += f"\n phase = {pulse.phase:.0f} deg"
 
                 # Make sure pulse colors are unique
                 if not remaining_colors:

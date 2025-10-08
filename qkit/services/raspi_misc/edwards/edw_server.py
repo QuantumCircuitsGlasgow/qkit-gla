@@ -20,9 +20,11 @@ try:
 except ImportError:
     import socketserver as SocketServer
 
-import os,sys
+import os
+import sys
+
 sys.path.append('../')
-from EdwardsBridgeReadout import Edwards_p_gauge   #import readout class
+from EdwardsBridgeReadout import Edwards_p_gauge  # import readout class
 
 p = Edwards_p_gauge()
 

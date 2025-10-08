@@ -18,17 +18,31 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
-import types
 import numpy as np
 from scipy import interpolate
 
+from qkit.core.instrument_base import Instrument
+
 volts = np.linspace(0, 8, 17)
-attenuation0408 = [0, 1.11278882e+00, 3.73766693e+00, 7.14756693e+00,
-                   1.00470419e+01, 1.30124250e+01, 1.53641026e+01, 1.76756578e+01,
-                   2.00411519e+01, 2.22864997e+01, 2.45740138e+01, 2.65537780e+01,
-                   2.84989597e+01, 3.03834811e+01, 3.21356836e+01, 3.40573527e+01,
-                   3.57549752e+01]  # These are measurement values, insertion loss not considered
+attenuation0408 = [
+    0,
+    1.11278882e00,
+    3.73766693e00,
+    7.14756693e00,
+    1.00470419e01,
+    1.30124250e01,
+    1.53641026e01,
+    1.76756578e01,
+    2.00411519e01,
+    2.22864997e01,
+    2.45740138e01,
+    2.65537780e01,
+    2.84989597e01,
+    3.03834811e01,
+    3.21356836e01,
+    3.40573527e01,
+    3.57549752e01,
+]  # These are measurement values, insertion loss not considered
 # ToDo include measurment values of 0812 vca for interpolation
 attenuation0812 = []
 
@@ -37,6 +51,7 @@ class Virtual_VCA(Instrument):
     """
     Wrapper for the VCA that allows to set the attenuation without knowing the underlying DAC mechanisms.
     """
+
     def __init__(self, name, dac_device, dac_port, freqrange):
         """
         inits the VCA (virtual instrument)
@@ -45,8 +60,8 @@ class Virtual_VCA(Instrument):
         :param dac_port: chosen output port / channel of your DAC-device
         :param freqrange: frequency range of the vca as string either '0408' or '0812'
         """
-        Instrument.__init__(self, name, tags=['virtual'])
-        if freqrange is '0408':
+        Instrument.__init__(self, name, tags=["virtual"])
+        if freqrange == "0408":
             self.volts_interpol = interpolate.interp1d(attenuation0408, volts)
             self.att_interpol = interpolate.interp1d(volts, attenuation0408)
 
@@ -55,8 +70,14 @@ class Virtual_VCA(Instrument):
         #    self.volts_interpol=interpolate.interp1d(attenuation0812, volts)
         #    self.att_interpol=interpolate.interp1d(volts, attenuation0812)
 
-        self.add_parameter('attenuation', type=float, flags=Instrument.FLAG_GETSET, units='dB', minval=0,
-                           maxval=30)
+        self.add_parameter(
+            "attenuation",
+            type=float,
+            flags=Instrument.FLAG_GETSET,
+            units="dB",
+            minval=0,
+            maxval=30,
+        )
         self._dac = _Dac(dac_device, dac_port)
 
     def do_set_attenuation(self, att):
@@ -72,7 +93,7 @@ class Virtual_VCA(Instrument):
         returns the attenuation of the vca
         """
         voltage = self._dac.get_dac_voltage()
-        return self.att_interpol(voltage*2)
+        return self.att_interpol(voltage * 2)
 
 
 class _Dac:
@@ -80,20 +101,21 @@ class _Dac:
     wrapper class so that Virtual_VCA works with several different Dacs.
     Please just append other devices here.
     """
+
     def __init__(self, dac_device, dac_port):
         self.dac_device = dac_device
         self.dac_port = dac_port
 
     def set_dac_voltage(self, voltage):
-        if self.dac_device.get_type()[0:4] == 'IVVI':
+        if self.dac_device.get_type()[0:4] == "IVVI":
             mv = voltage * 1000
             self.dac_device.set_dac(self.dac_port, mv, dacrange=(0, 4000))
-        elif self.dac_device.get_type()[0:6] == 'DC_DAC':
+        elif self.dac_device.get_type()[0:6] == "DC_DAC":
             self.dac_device.do_set_voltage(voltage, self.dac_port)
 
     def get_dac_voltage(self):
-        if self.dac_device.get_type()[0:4] == 'IVVI':
+        if self.dac_device.get_type()[0:4] == "IVVI":
             voltage = self.dac_device.get_dac(self.dac_port, dacrange=(0, 4000)) / 1000
-        elif self.dac_device.get_type()[0:6] == 'DC_DAC':
+        elif self.dac_device.get_type()[0:6] == "DC_DAC":
             voltage = self.dac_device.do_get_voltage(self.dac_port)
         return voltage

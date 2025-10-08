@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Keithley.py driver for Keithley 2636A multi channel source measure unit
 # Micha Wildermuth, micha.wildermuth@kit.edu 2017
 #
@@ -17,10 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import logging
+
+import numpy as np
+
 import qkit
 from qkit.core.instrument_base import Instrument
-import logging
-import numpy as np
 
 
 class virtual_tunnel_electronic(Instrument):
@@ -75,8 +75,8 @@ class virtual_tunnel_electronic(Instrument):
         """
         self.__name__ = __name__
         # create instrument
-        logging.info(__name__ + ': Initializing instrument virtual tunnel electronic')
-        Instrument.__init__(self, name, tags=['virtual'])
+        logging.info(__name__ + ": Initializing instrument virtual tunnel electronic")
+        Instrument.__init__(self, name, tags=["virtual"])
         self._instruments = qkit.instruments.get_instruments()
         # Source Measure Unit (SMU)
         self._SMU = SMU
@@ -84,21 +84,20 @@ class virtual_tunnel_electronic(Instrument):
         self._BW = None  # bandwidth of prefilter (only for get_all and setting file)
         self._dAdV = 2e-6  # for external current bias
         self._amp = 1e3  # for external voltage amplifier
-        self._tau_amp = 100e-3  # time constant of amplifier (only for get_all and setting file)
+        self._tau_amp = (
+            100e-3  # time constant of amplifier (only for get_all and setting file)
+        )
         self._dVdA = 1e8  # for external voltage bias
         self._Vdiv = 1e3  # for external voltage divider
         # internal variables
         self._sweep_mode = 0  # VV-mode
         self._sweep_channels = (1, 2)
-        self._sweep_modes = {0: 'VV-mode', 1: 'IV-mode', 2: 'VI-mode'}
+        self._sweep_modes = {0: "VV-mode", 1: "IV-mode", 2: "VI-mode"}
         self._pseudo_bias_mode = 0  # current bias
-        self._pseudo_bias_modes = {0: 'current bias', 1: 'voltage bias'}
+        self._pseudo_bias_modes = {0: "current bias", 1: "voltage bias"}
         # dict of defaults values: defaults[<pseudo_bias_mode>][<parameter>][<value>]
-        self._defaults = {0: {'dAdV': 2e-6,
-                              'amp': 1e3},
-                          1: {'dVdA': 1e8,
-                              'Vdiv': 1e3}}
-        self._default_str = 'default parameters'
+        self._defaults = {0: {"dAdV": 2e-6, "amp": 1e3}, 1: {"dVdA": 1e8, "Vdiv": 1e3}}
+        self._default_str = "default parameters"
         self.__set_defaults_docstring()
 
     def set_BW(self, val=None):
@@ -718,19 +717,27 @@ class virtual_tunnel_electronic(Instrument):
         default_channels = {0: (1, 2), 1: (1,), 2: (1,)}
         if mode in [0, 1, 2]:
             if len(channels) == 0:
-                logging.debug('{!s}: Set sweep channels to {!s}'.format(__name__, default_channels[mode]))
+                logging.debug(
+                    "{!s}: Set sweep channels to {!s}".format(
+                        __name__, default_channels[mode]
+                    )
+                )
                 self._sweep_channels = default_channels[mode]
                 self._SMU._sweep_channels = default_channels[mode]
             else:
-                logging.debug('{!s}: Set sweep channels to {!s}'.format(__name__, channels))
+                logging.debug(
+                    f"{__name__!s}: Set sweep channels to {channels!s}"
+                )
                 self._sweep_channels = channels
                 self._SMU._sweep_channels = channels
-            logging.debug('{!s}: Set sweep mode to {:d}'.format(__name__, mode))
+            logging.debug(f"{__name__!s}: Set sweep mode to {mode:d}")
             self._sweep_mode = mode
             self._SMU.set_sweep_mode(mode=mode)
         else:
-            logging.error('{!s}: Cannot set sweep mode to {!s}'.format(__name__, mode))
-            raise ValueError('{!s}: Cannot set sweep mode to {!s}'.format(__name__, mode))
+            logging.error(f"{__name__!s}: Cannot set sweep mode to {mode!s}")
+            raise ValueError(
+                f"{__name__!s}: Cannot set sweep mode to {mode!s}"
+            )
 
     def get_sweep_mode(self):
         """
@@ -765,15 +772,23 @@ class virtual_tunnel_electronic(Instrument):
         """
         if self._sweep_channels != self._SMU.get_sweep_channels():
             logging.error(
-                '{!s}: sweep channels of {:s} and {:s} do not coincide: {:s} and {:s}'.format(__name__, self.__name__,
-                                                                                              self._SMU.__name__,
-                                                                                              self._sweep_channels,
-                                                                                              self._SMU.get_sweep_channels()))
+                "{!s}: sweep channels of {:s} and {:s} do not coincide: {:s} and {:s}".format(
+                    __name__,
+                    self.__name__,
+                    self._SMU.__name__,
+                    self._sweep_channels,
+                    self._SMU.get_sweep_channels(),
+                )
+            )
             raise ValueError(
-                '{!s}: sweep channels of {:s} and {:s} do not coincide: {:s} and {:s}'.format(__name__, self.__name__,
-                                                                                              self._SMU.__name__,
-                                                                                              self._sweep_channels,
-                                                                                              self._SMU.get_sweep_channels()))
+                "{!s}: sweep channels of {:s} and {:s} do not coincide: {:s} and {:s}".format(
+                    __name__,
+                    self.__name__,
+                    self._SMU.__name__,
+                    self._sweep_channels,
+                    self._SMU.get_sweep_channels(),
+                )
+            )
         else:
             return self._sweep_channels
 
@@ -797,12 +812,16 @@ class virtual_tunnel_electronic(Instrument):
         None
         """
         if mode in [0, 1, 2]:
-            logging.debug('{!s}: Set pseudo bias mode to {:d}'.format(__name__, mode))
+            logging.debug(f"{__name__!s}: Set pseudo bias mode to {mode:d}")
             self._pseudo_bias_mode = mode
             self.__set_defaults_docstring()
         else:
-            logging.error('{!s}: Cannot set pseudo bias mode to {!s}'.format(__name__, mode))
-            raise ValueError('{!s}: Cannot set pseudo bias mode to {!s}'.format(__name__, mode))
+            logging.error(
+                f"{__name__!s}: Cannot set pseudo bias mode to {mode!s}"
+            )
+            raise ValueError(
+                f"{__name__!s}: Cannot set pseudo bias mode to {mode!s}"
+            )
 
     def get_pseudo_bias_mode(self):
         """
@@ -841,22 +860,29 @@ class virtual_tunnel_electronic(Instrument):
         # attribute **kwargs needed for identical call as in SMUs (which need channels)
         if self._sweep_mode != self._SMU.get_sweep_mode():
             logging.error(
-                '{!s}: sweep mode of {:s} and {:s} do not coincide: {:s} and {:s}'.format(__name__, self.__name__,
-                                                                                          self._SMU.__name__,
-                                                                                          self._sweep_modes[
-                                                                                              self._sweep_mode],
-                                                                                          self._sweep_modes[
-                                                                                              self._SMU.get_sweep_mode()]))
+                "{!s}: sweep mode of {:s} and {:s} do not coincide: {:s} and {:s}".format(
+                    __name__,
+                    self.__name__,
+                    self._SMU.__name__,
+                    self._sweep_modes[self._sweep_mode],
+                    self._sweep_modes[self._SMU.get_sweep_mode()],
+                )
+            )
             raise ValueError(
-                '{!s}: sweep mode of {:s} and {:s} do not coincide: {:s} and {:s}'.format(__name__, self.__name__,
-                                                                                          self._SMU.__name__,
-                                                                                          self._sweep_modes[
-                                                                                              self._sweep_mode],
-                                                                                          self._sweep_modes[
-                                                                                              self._SMU.get_sweep_mode()]))
+                "{!s}: sweep mode of {:s} and {:s} do not coincide: {:s} and {:s}".format(
+                    __name__,
+                    self.__name__,
+                    self._SMU.__name__,
+                    self._sweep_modes[self._sweep_mode],
+                    self._sweep_modes[self._SMU.get_sweep_mode()],
+                )
+            )
         else:
-            return int(not bool(self._sweep_mode)) * self._pseudo_bias_mode + int(bool(self._sweep_mode)) * (
-                        self._sweep_mode - 1)  # 0 (current bias) | 1 (voltage bias)
+            return int(not bool(self._sweep_mode)) * self._pseudo_bias_mode + int(
+                bool(self._sweep_mode)
+            ) * (
+                self._sweep_mode - 1
+            )  # 0 (current bias) | 1 (voltage bias)
 
     def set_voltage(self, val, channel=1):
         """
@@ -877,16 +903,28 @@ class virtual_tunnel_electronic(Instrument):
         if self._sweep_mode == 0:  # 0 (VV mode)
             if not self._pseudo_bias_mode:  # 0 (current bias)
                 logging.error(
-                    '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                    "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                        __name__, channel
+                    )
+                )
                 raise SystemError(
-                    '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                    "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                        __name__, channel
+                    )
+                )
             elif self._pseudo_bias_mode:  # 1 (voltage bias)
                 return self._SMU.set_bias_value(val=val * self._Vdiv, channel=channel)
         elif self._sweep_mode == 1:  # 1 (IV mode)
             logging.error(
-                '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                    __name__, channel
+                )
+            )
             raise SystemError(
-                '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                    __name__, channel
+                )
+            )
         elif self._sweep_mode == 2:  # 2 (VI-mode)
             return self._SMU.set_bias_value(val=val, channel=channel)
 
@@ -938,16 +976,28 @@ class virtual_tunnel_electronic(Instrument):
                 return self._SMU.set_bias_value(val=val / self._dAdV, channel=channel)
             elif self._pseudo_bias_mode:  # 1 (voltage bias)
                 logging.error(
-                    '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                    "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                        __name__, channel
+                    )
+                )
                 raise SystemError(
-                    '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                    "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                        __name__, channel
+                    )
+                )
         elif self._sweep_mode == 1:  # 1 (IV mode)
             return self._SMU.set_bias_value(val=val, channel=channel)
         elif self._sweep_mode == 2:  # 2 (VI-mode)
             logging.error(
-                '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                    __name__, channel
+                )
+            )
             raise SystemError(
-                '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                    __name__, channel
+                )
+            )
 
     def get_current(self, channel=1):
         """
@@ -999,19 +1049,37 @@ class virtual_tunnel_electronic(Instrument):
         if self._sweep_mode == 0:  # 0 (VV mode)
             if not self._pseudo_bias_mode:  # 0 (current bias)
                 logging.error(
-                    '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                    "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                        __name__, channel
+                    )
+                )
                 raise SystemError(
-                    '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                    "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                        __name__, channel
+                    )
+                )
             elif self._pseudo_bias_mode:  # 1 (voltage bias)
-                return self._SMU.ramp_bias(stop=stop * self._Vdiv, step=step * self._Vdiv, step_time=step_time,
-                                           channel=channel)
+                return self._SMU.ramp_bias(
+                    stop=stop * self._Vdiv,
+                    step=step * self._Vdiv,
+                    step_time=step_time,
+                    channel=channel,
+                )
         elif self._sweep_mode == 1:  # 1 (IV mode)
             logging.error(
-                '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                    __name__, channel
+                )
+            )
             raise SystemError(
-                '{!s}: Cannot set voltage value of channel {!s} in the current bias'.format(__name__, channel))
+                "{!s}: Cannot set voltage value of channel {!s} in the current bias".format(
+                    __name__, channel
+                )
+            )
         elif self._sweep_mode == 2:  # 2 (VI-mode)
-            return self._SMU.ramp_bias(stop=stop, step=step, step_time=step_time, channel=channel)
+            return self._SMU.ramp_bias(
+                stop=stop, step=step, step_time=step_time, channel=channel
+            )
 
     def ramp_current(self, stop, step, step_time=0.1, channel=1):
         """
@@ -1035,20 +1103,38 @@ class virtual_tunnel_electronic(Instrument):
         """
         if self._sweep_mode == 0:  # 0 (VV mode)
             if not self._pseudo_bias_mode:  # 0 (current bias)
-                return self._SMU.ramp_bias(stop=stop / self._dAdV, step=step / self._dAdV, step_time=step_time,
-                                           channel=channel)
+                return self._SMU.ramp_bias(
+                    stop=stop / self._dAdV,
+                    step=step / self._dAdV,
+                    step_time=step_time,
+                    channel=channel,
+                )
             elif self._pseudo_bias_mode:  # 1 (voltage bias)
                 logging.error(
-                    '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                    "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                        __name__, channel
+                    )
+                )
                 raise SystemError(
-                    '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                    "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                        __name__, channel
+                    )
+                )
         elif self._sweep_mode == 1:  # 1 (IV mode)
-            return self._SMU.ramp_bias(stop=stop, step=step, step_time=step_time, channel=channel)
+            return self._SMU.ramp_bias(
+                stop=stop, step=step, step_time=step_time, channel=channel
+            )
         elif self._sweep_mode == 2:  # 2 (VI-mode)
             logging.error(
-                '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                    __name__, channel
+                )
+            )
             raise SystemError(
-                '{!s}: Cannot set current value of channel {!s} in the voltage bias'.format(__name__, channel))
+                "{!s}: Cannot set current value of channel {!s} in the voltage bias".format(
+                    __name__, channel
+                )
+            )
 
     def set_sweep_parameters(self, sweep):
         """
@@ -1145,8 +1231,10 @@ class virtual_tunnel_electronic(Instrument):
         if pseudo_bias_mode is not None:
             self.set_pseudo_bias_mode(pseudo_bias_mode)
         # set values
-        for key_parameter, val_parameter in self._defaults[self._pseudo_bias_mode].items():
-            eval('self.set_{:s}(val={!s})'.format(key_parameter, val_parameter))
+        for key_parameter, val_parameter in self._defaults[
+            self._pseudo_bias_mode
+        ].items():
+            eval(f"self.set_{key_parameter:s}(val={val_parameter!s})")
         # set defaults of SMU according to sweep_mode
         if SMU:
             if sweep_mode is not None:
@@ -1154,7 +1242,7 @@ class virtual_tunnel_electronic(Instrument):
             self._SMU.set_defaults(sweep_mode=sweep_mode)
 
     def __set_defaults_docstring(self):
-        '''
+        """
         Sets docstring of "set_defaults" method with actual default settings.
 
         Parameters
@@ -1164,11 +1252,18 @@ class virtual_tunnel_electronic(Instrument):
         Returns
         -------
         None
-        '''
-        new = 'pseudo bias mode: {:d}:\n'.format(self._pseudo_bias_mode) + ''.join(
-            ['\t\t{:s}: {:1.2e}\n'.format(key_parameter, val_parameter) for key_parameter, val_parameter in
-             self._defaults[self._pseudo_bias_mode].items()])
-        self.set_defaults.__func__.__doc__ = self.set_defaults.__func__.__doc__.replace(self._default_str, new)
+        """
+        new = f"pseudo bias mode: {self._pseudo_bias_mode:d}:\n" + "".join(
+            [
+                f"\t\t{key_parameter:s}: {val_parameter:1.2e}\n"
+                for key_parameter, val_parameter in self._defaults[
+                    self._pseudo_bias_mode
+                ].items()
+            ]
+        )
+        self.set_defaults.__func__.__doc__ = self.set_defaults.__func__.__doc__.replace(
+            self._default_str, new
+        )
         self._default_str = new
         return
 
@@ -1187,17 +1282,24 @@ class virtual_tunnel_electronic(Instrument):
         -------
         None
         """
-        logging.info(__name__ + ': Get all')
+        logging.info(__name__ + ": Get all")
         if self.get_BW() is not None:
-            print('bandwidth          = {:1.0e}Hz'.format(self.get_BW()))
-        print('dAdV               = {:1.0e}A/V'.format(self.get_dAdV()))
-        print('amp factor         = {:1.0e}'.format(self.get_amp()))
-        print('amp time constant  = {:1.0e}s'.format(self.get_tau_amp()))
-        print('dVdA               = {:1.0e}V/A'.format(self.get_dVdA()))
-        print('voltage divider    = {:1.0e}'.format(self.get_Vdiv()))
-        print('sweep mode         = {:d} ({:s})'.format(self._sweep_mode, self._sweep_modes[self._sweep_mode]))
-        print('pseudo bias mode   = {:d} ({:s})'.format(self._pseudo_bias_mode,
-                                                        self._pseudo_bias_modes[self._pseudo_bias_mode]))
+            print(f"bandwidth          = {self.get_BW():1.0e}Hz")
+        print(f"dAdV               = {self.get_dAdV():1.0e}A/V")
+        print(f"amp factor         = {self.get_amp():1.0e}")
+        print(f"amp time constant  = {self.get_tau_amp():1.0e}s")
+        print(f"dVdA               = {self.get_dVdA():1.0e}V/A")
+        print(f"voltage divider    = {self.get_Vdiv():1.0e}")
+        print(
+            "sweep mode         = {:d} ({:s})".format(
+                self._sweep_mode, self._sweep_modes[self._sweep_mode]
+            )
+        )
+        print(
+            "pseudo bias mode   = {:d} ({:s})".format(
+                self._pseudo_bias_mode, self._pseudo_bias_modes[self._pseudo_bias_mode]
+            )
+        )
         if SMU:
             self._SMU.get_all(channel=channel)
         return
@@ -1239,27 +1341,29 @@ class virtual_tunnel_electronic(Instrument):
         parlist: dict
             Parameter names as keys, corresponding channels of interest as values.
         """
-        parlist = {'measurement_mode': self._sweep_channels,
-                   'bias_mode': self._sweep_channels,
-                   'sense_mode': self._sweep_channels,
-                   'bias_range': self._sweep_channels,
-                   'sense_range': self._sweep_channels,
-                   'bias_delay': self._sweep_channels,
-                   'sense_delay': self._sweep_channels,
-                   'sense_average': self._sweep_channels,
-                   'plc': [None],
-                   'sense_nplc': self._sweep_channels,
-                   'sweep_mode': [None],
-                   'pseudo_bias_mode': [None],
-                   'BW': [None]}
+        parlist = {
+            "measurement_mode": self._sweep_channels,
+            "bias_mode": self._sweep_channels,
+            "sense_mode": self._sweep_channels,
+            "bias_range": self._sweep_channels,
+            "sense_range": self._sweep_channels,
+            "bias_delay": self._sweep_channels,
+            "sense_delay": self._sweep_channels,
+            "sense_average": self._sweep_channels,
+            "plc": [None],
+            "sense_nplc": self._sweep_channels,
+            "sweep_mode": [None],
+            "pseudo_bias_mode": [None],
+            "BW": [None],
+        }
         if not self._pseudo_bias_mode:  # 0 (current bias)
-            parlist['dAdV'] = [None]
-            parlist['amp'] = [None]
-            parlist['current'] = self._sweep_channels
+            parlist["dAdV"] = [None]
+            parlist["amp"] = [None]
+            parlist["current"] = self._sweep_channels
         elif self._pseudo_bias_mode:  # 1 (voltage bias)
-            parlist['dVdA'] = [None]
-            parlist['Vdiv'] = [None]
-            parlist['voltage'] = self._sweep_channels
+            parlist["dVdA"] = [None]
+            parlist["Vdiv"] = [None]
+            parlist["voltage"] = self._sweep_channels
         return parlist
 
     def get(self, param, **kwargs):
@@ -1279,10 +1383,22 @@ class virtual_tunnel_electronic(Instrument):
         parlist: dict
             Parameter names as keys, values of corresponding channels as values.
         """
-        channels = kwargs.get('channels')
+        channels = kwargs.get("channels")
         if channels != [None]:
-            return tuple(eval('map(lambda channel, self=self: self.get_{:s}(channel=channel), [{:s}])'.format(param, ', '.join(map(str, channels)))))
-            #return tuple([eval('self.get_{:s}(channel={!s})'.format(param, channel)) for channel in channels])
+            return tuple(
+                eval(
+                    "map(lambda channel, self=self: self.get_{:s}(channel=channel), [{:s}])".format(
+                        param, ", ".join(map(str, channels))
+                    )
+                )
+            )
+            # return tuple([eval('self.get_{:s}(channel={!s})'.format(param, channel)) for channel in channels])
         else:
-            return tuple(eval('map(lambda channel, self=self: self.get_{:s}(), [None])'.format(param)))
-            #return eval('self.get_{:s}()'.format(param))
+            return tuple(
+                eval(
+                    "map(lambda channel, self=self: self.get_{:s}(), [None])".format(
+                        param
+                    )
+                )
+            )
+            # return eval('self.get_{:s}()'.format(param))

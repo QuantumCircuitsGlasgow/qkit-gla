@@ -1,8 +1,8 @@
-import socket
 import select
+import socket
 
-class TCPClient():
 
+class TCPClient:
     def __init__(self, host, port, packet_len=False):
         self._packet_len = packet_len
         self._socket = None

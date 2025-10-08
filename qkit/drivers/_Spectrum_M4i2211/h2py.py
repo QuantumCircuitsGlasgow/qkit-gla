@@ -21,15 +21,18 @@
 # - what to do about #if(def)?
 # - what to do about macros with multiple parameters?
 
-import sys, re, getopt, os
+import getopt
+import os
+import re
+import sys
 
 p_define = re.compile('^[\t ]*#[\t ]*define[\t ]+([a-zA-Z0-9_]+)[\t ]+')
 
 p_macro = re.compile(
   '^[\t ]*#[\t ]*define[\t ]+'
-  '([a-zA-Z0-9_]+)\(([_a-zA-Z][_a-zA-Z0-9]*)\)[\t ]+')
+  '([a-zA-Z0-9_]+)\\(([_a-zA-Z][_a-zA-Z0-9]*)\\)[\t ]+')
 
-p_include = re.compile('^[\t ]*#[\t ]*include[\t ]+<([a-zA-Z0-9_/\.]+)')
+p_include = re.compile('^[\t ]*#[\t ]*include[\t ]+<([a-zA-Z0-9_/\\.]+)')
 
 p_comment = re.compile(r'/\*([^*]+|\*+[^/])*(\*+/)?')
 p_cpp_comment = re.compile('//.*')

@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 # Micha Wildermuth, micha.wildermuth@kit.edu 2020
 
-from qkit.core.instrument_base import Instrument
 import time
+
+from qkit.core.instrument_base import Instrument
 
 
 class quartz_dummy(Instrument)::

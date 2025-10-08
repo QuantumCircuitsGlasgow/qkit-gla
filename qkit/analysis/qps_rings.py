@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 
 @author: h.rotzinger
 """
-from qkit.storage import hdf_lib
 import numpy as np
+from scipy.ndimage import gaussian_filter1d, median_filter
 from scipy.ndimage.filters import sobel
-from scipy.ndimage import gaussian_filter1d
-from scipy.ndimage import median_filter
+
+from qkit.storage import hdf_lib
 
 
 class qps_ring(object):

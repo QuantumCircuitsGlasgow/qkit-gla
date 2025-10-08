@@ -18,5 +18,17 @@ venv
 # QKit data
 notebooks/
 data/
-
+garbage/
 .github
+
+# .precommit_hooks/
+.precommit_logs/
+.pytest_cache/
+
+__pycache__/
+*/__pycache__/
+
+.ruff_cache/
+
+*.egg-info/
+dist/

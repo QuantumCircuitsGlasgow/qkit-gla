@@ -17,15 +17,17 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-from qkit.core.instrument_base import Instrument
-import types
 import logging
-#import numpy as np
-import time,sys
 #import atexit
 #import serial
 import socket
 import sys
+#import numpy as np
+import time
+import types
+
+from qkit.core.instrument_base import Instrument
+
 
 class EdwardsActiveDigitalController(Instrument):
 

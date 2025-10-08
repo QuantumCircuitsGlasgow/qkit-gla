@@ -16,15 +16,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import logging
+import pickle
+import types
 from ctypes import *
+from time import sleep, time
+
+import numpy
 from _Spectrum_M2i2030.errors import errors as _spcm_errors
 from _Spectrum_M2i2030.regs import regs as _spcm_regs
+
 from qkit.core.instrument_base import Instrument
-import pickle
-from time import sleep, time
-import types
-import logging
-import numpy
+
 
 class Spectrum_M2i2030(Instrument):
     '''

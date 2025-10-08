@@ -1,8 +1,8 @@
-from qkit.core.instrument_basev2 import QkitProperty, QkitFunction, interval_check, ModernInstrument
-        
+from qkit.core.instrument_basev2 import (ModernInstrument, QkitFunction,
+                                         QkitProperty, interval_check)
+
 
 class Channel:
-
     def __init__(self, id):
         self.id = id
 
@@ -21,15 +21,20 @@ class Channel:
     def do_something(self):
         return f"Maybe{self.id}"
 
-class ModernDriverTest(ModernInstrument):
 
+class ModernDriverTest(ModernInstrument):
     def __init__(self, name):
         super().__init__(name)
         print("In init", name)
         self.channels = [Channel(i) for i in range(8)]
         self.discover_capabilities()
 
-    @QkitProperty(type=float, units="V", tags=["Voltage Supply"], arg_checker=interval_check(0.0, 5.0))
+    @QkitProperty(
+        type=float,
+        units="V",
+        tags=["Voltage Supply"],
+        arg_checker=interval_check(0.0, 5.0),
+    )
     def voltage(self):
         """
         Measures the voltage of something.

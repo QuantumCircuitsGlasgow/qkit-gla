@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Teslameter_FM302.py driver for the Projekt Elektronic GmbH Teslameter FM302
 # Micha Wildermuth, micha.wildermuth@kit.edu 2020
 #
@@ -17,10 +15,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
-from qkit import visa
-from distutils.version import LooseVersion
 import time
+from distutils.version import LooseVersion
+
+from qkit import visa
+from qkit.core.instrument_base import Instrument
 
 
 class Teslameter_FM302(Instrument):
@@ -70,62 +69,60 @@ class Teslameter_FM302(Instrument):
         """
         self.__name__ = __name__
         # Start VISA communication
-        Instrument.__init__(self, name, tags=['physical'])
+        Instrument.__init__(self, name, tags=["physical"])
         self._address = address
         self._visainstrument = visa.instrument(self._address)
         # Set termination characters (necessary for Ethernet communication)
         if LooseVersion(visa.__version__) < LooseVersion("1.5.0"):  # pyvisa 1.4
-            self._visainstrument.term_chars = '\n'
+            self._visainstrument.term_chars = "\n"
         else:  # pyvisa 1.5
-            self._visainstrument.write_termination = '\n'
-            self._visainstrument.read_termination = '\r\n'
+            self._visainstrument.write_termination = "\n"
+            self._visainstrument.read_termination = "\r\n"
         if reset:
             self.reset()
-        self.add_parameter('coupling',
-                           type=int,
-                           flags=Instrument.FLAG_GETSET,
-                           minval=0,
-                           maxval=1)
-        self.add_parameter('filter',
-                           type=int,
-                           flags=Instrument.FLAG_GETSET,
-                           minval=1,
-                           maxval=64)
-        self.add_parameter('integration_time',
-                           type=float,
-                           flags=Instrument.FLAG_GETSET,
-                           minval=100e-3,
-                           maxval=5,
-                           unit='s')
-        self.add_parameter('gain',
-                           type=int,
-                           flags=Instrument.FLAG_GETSET,
-                           minval=1,
-                           maxval=100)
-        self.add_parameter('relative',
-                           type=float,
-                           flags=Instrument.FLAG_GETSET,
-                           minval=-70,
-                           maxval=70,
-                           units='T')
-        self.add_parameter('zero',
-                           type=int,
-                           flags=Instrument.FLAG_GETSET,
-                           minval=-39320,
-                           maxval=26213)
-        self.add_parameter('value',
-                           type=float,
-                           flags=Instrument.FLAG_GET,
-                           minval=-1.,
-                           maxval=1.,
-                           units='T')
-        self.add_function('reset')
+        self.add_parameter(
+            "coupling", type=int, flags=Instrument.FLAG_GETSET, minval=0, maxval=1
+        )
+        self.add_parameter(
+            "filter", type=int, flags=Instrument.FLAG_GETSET, minval=1, maxval=64
+        )
+        self.add_parameter(
+            "integration_time",
+            type=float,
+            flags=Instrument.FLAG_GETSET,
+            minval=100e-3,
+            maxval=5,
+            unit="s",
+        )
+        self.add_parameter(
+            "gain", type=int, flags=Instrument.FLAG_GETSET, minval=1, maxval=100
+        )
+        self.add_parameter(
+            "relative",
+            type=float,
+            flags=Instrument.FLAG_GETSET,
+            minval=-70,
+            maxval=70,
+            units="T",
+        )
+        self.add_parameter(
+            "zero", type=int, flags=Instrument.FLAG_GETSET, minval=-39320, maxval=26213
+        )
+        self.add_parameter(
+            "value",
+            type=float,
+            flags=Instrument.FLAG_GET,
+            minval=-1.0,
+            maxval=1.0,
+            units="T",
+        )
+        self.add_function("reset")
 
     def _write(self, cmd):
         return self._visainstrument.write(cmd)
 
     def _read(self):
-        return self._visainstrument.read_raw().decode('latin1').strip('\r\n')
+        return self._visainstrument.read_raw().decode("latin1").strip("\r\n")
 
     def do_set_coupling(self, val):
         """
@@ -140,10 +137,10 @@ class Teslameter_FM302(Instrument):
         -------
         None
         """
-        if val==0:  # DC
-            self._visainstrument.query('coupling DC')
-        elif val==1:  # AC
-            self._visainstrument.query('coupling AC')
+        if val == 0:  # DC
+            self._visainstrument.query("coupling DC")
+        elif val == 1:  # AC
+            self._visainstrument.query("coupling AC")
 
     def do_get_coupling(self):
         """
@@ -158,7 +155,9 @@ class Teslameter_FM302(Instrument):
         val: int
             Signal coupling mode. Meanings are 0 (DC) and 1 (AC).
         """
-        return {'DC':0, 'AC':1}[self._visainstrument.query('coupling').strip('coupling is ')]
+        return {"DC": 0, "AC": 1}[
+            self._visainstrument.query("coupling").strip("coupling is ")
+        ]
 
     def do_set_filter(self, val):
         """
@@ -173,8 +172,8 @@ class Teslameter_FM302(Instrument):
         -------
         None
         """
-        self._write('filter {:d}'.format(val))
-        return int(self._read().strip('filter is '))
+        self._write(f"filter {val:d}")
+        return int(self._read().strip("filter is "))
 
     def do_get_filter(self):
         """
@@ -189,8 +188,8 @@ class Teslameter_FM302(Instrument):
         val: int
             Moving average filter length. Possible values are 1, 2, 4, 8, 16, 32, 64.
         """
-        self._write('filter')
-        return int(self._read().strip('filter is '))
+        self._write("filter")
+        return int(self._read().strip("filter is "))
 
     def do_set_integration_time(self, val):
         """
@@ -205,8 +204,8 @@ class Teslameter_FM302(Instrument):
         -------
         None
         """
-        self._write('inttime {:d}'.format(val*1e3))
-        return float(self._read().strip('integration time is '))*1e-3
+        self._write(f"inttime {val * 1e3:d}")
+        return float(self._read().strip("integration time is ")) * 1e-3
 
     def do_get_integration_time(self):
         """
@@ -221,8 +220,8 @@ class Teslameter_FM302(Instrument):
         val: int
             Integration time in seconds.
         """
-        self._write('inttime')
-        return float(self._read().strip('integration time is '))*1e-3
+        self._write("inttime")
+        return float(self._read().strip("integration time is ")) * 1e-3
 
     def do_set_gain(self, val):
         """
@@ -237,8 +236,8 @@ class Teslameter_FM302(Instrument):
         -------
         None
         """
-        self._write('gain {:d}'.format(val))
-        return int(self._read().strip('analog gain is x'))
+        self._write(f"gain {val:d}")
+        return int(self._read().strip("analog gain is x"))
 
     def do_get_gain(self):
         """
@@ -253,8 +252,8 @@ class Teslameter_FM302(Instrument):
         val: int
             Analog gain. Can be in {1, 10, 100}.
         """
-        self._write('gain')
-        return int(self._read().strip('analog gain is x'))
+        self._write("gain")
+        return int(self._read().strip("analog gain is x"))
 
     def do_set_relative(self, val):
         """
@@ -270,12 +269,12 @@ class Teslameter_FM302(Instrument):
         None
         """
         if bool(val) is False:
-            self._write('absolute')
+            self._write("absolute")
         else:
             if bool(val) == val:
-                self._write('relative set')
+                self._write("relative set")
             else:
-                self._write('relative {:1.2f}'.format(val))
+                self._write(f"relative {val:1.2f}")
         return self._read()
 
     def do_get_relative(self):
@@ -291,13 +290,13 @@ class Teslameter_FM302(Instrument):
         val: float
             Relative measurement value.
         """
-        self._write('relative')
+        self._write("relative")
         ans = self._read()
-        if ans is 'display is not relative':
+        if ans == "display is not relative":
             return 0
-        elif 'display is relative' in ans:
-            ans = ans.strip('display is relative, reference = ').split(' ')
-            return float(ans[0]) * {'m': 1e-3, u'\xb5': 1e-6, 'n':1e-9}[ans[1][0]]
+        elif "display is relative" in ans:
+            ans = ans.strip("display is relative, reference = ").split(" ")
+            return float(ans[0]) * {"m": 1e-3, "\xb5": 1e-6, "n": 1e-9}[ans[1][0]]
 
     def do_set_zero(self, val):
         """
@@ -315,14 +314,14 @@ class Teslameter_FM302(Instrument):
         None
         """
         if bool(val) == val:
-            self._write('zero set')
+            self._write("zero set")
             time.sleep(5)
         else:
-            self._write('zero {:d}'.format(val))
+            self._write(f"zero {val:d}")
         while True:
             ans = self._read()
-            if 'zero compensation value is ' in ans:
-                return int(ans.strip('zero compensation value is '))
+            if "zero compensation value is " in ans:
+                return int(ans.strip("zero compensation value is "))
             else:
                 time.sleep(1)
 
@@ -339,8 +338,8 @@ class Teslameter_FM302(Instrument):
         val: float
             Offset compensation value.
         """
-        self._write('zero')
-        return int(self._read().strip('zero compensation value is '))
+        self._write("zero")
+        return int(self._read().strip("zero compensation value is "))
 
     def reset(self):
         """
@@ -354,7 +353,7 @@ class Teslameter_FM302(Instrument):
         -------
         None
         """
-        self._write('default')
+        self._write("default")
         return self._read()
 
     def do_get_value(self):
@@ -370,6 +369,6 @@ class Teslameter_FM302(Instrument):
         val: float
             Measured value (in Tesla).
         """
-        self._visainstrument.query('logging 1')
-        ans = self._read().split(' ')
-        return float(ans[0]) * {'m': 1e-3, u'\xb5': 1e-6, 'n':1e-9}[ans[1][0]]
+        self._visainstrument.query("logging 1")
+        ans = self._read().split(" ")
+        return float(ans[0]) * {"m": 1e-3, "\xb5": 1e-6, "n": 1e-9}[ans[1][0]]

@@ -21,16 +21,19 @@
 #
 #
 
-from qkit.core.instrument_base import Instrument
-import types
 import logging
-# comms and byte packing
-import threading
-import socket
-import dpkt
-import struct
 # ip filter
 import re
+import socket
+import struct
+# comms and byte packing
+import threading
+import types
+
+import dpkt
+
+from qkit.core.instrument_base import Instrument
+
 
 class EthernetServer(Instrument):
     '''

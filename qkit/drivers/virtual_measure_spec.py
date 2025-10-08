@@ -25,61 +25,72 @@ mspec = qkit.instruments.create('mspec','virtual_measure_spec',spec,samples=1)
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import qkit
-from qkit.core.instrument_base import Instrument
 import numpy
-import types
 
+from qkit.core.instrument_base import Instrument
 
 # import time
 
 
 class virtual_measure_spec(Instrument):
-    '''
+    """
     perform time-resolved and averaged measurement with the spectrum card
-    '''
+    """
+
     _offsets = None
 
-    def __init__(self, name, card, samples, segments=1, averages=1, blocks=1, channels=3, multimode=True,
-                 gate_func=None, trigger_rate=1e5, offsets=None):
-        '''
-            perform time-resolved averaged measurements with the spectrum card
+    def __init__(
+        self,
+        name,
+        card,
+        samples,
+        segments=1,
+        averages=1,
+        blocks=1,
+        channels=3,
+        multimode=True,
+        gate_func=None,
+        trigger_rate=1e5,
+        offsets=None,
+    ):
+        """
+        perform time-resolved averaged measurements with the spectrum card
 
-            parameters:
-                card - spectrum card to use
-                samples - number of samples per trigger
-                segments - number of different measurements in a row
-                averages - number of acquisitions per block
-                blocks - number of blocks to aquire
-                channels - bit map of channels to use:
-                        B"01" = ch0, B"10" = ch1, B"11" = ch0 and ch1, B here denotes binary
-                multimode - use multiple recording mode?
-                gate_func - called at the start/end of each block with parameter True/False
-                trigger_rate - expected rate of triggers for calculation of proper timeouts
-                offsets - offset added to the channel values
-        '''
-        Instrument.__init__(self, name, tags=['virtual'])
+        parameters:
+            card - spectrum card to use
+            samples - number of samples per trigger
+            segments - number of different measurements in a row
+            averages - number of acquisitions per block
+            blocks - number of blocks to aquire
+            channels - bit map of channels to use:
+                    B"01" = ch0, B"10" = ch1, B"11" = ch0 and ch1, B here denotes binary
+            multimode - use multiple recording mode?
+            gate_func - called at the start/end of each block with parameter True/False
+            trigger_rate - expected rate of triggers for calculation of proper timeouts
+            offsets - offset added to the channel values
+        """
+        Instrument.__init__(self, name, tags=["virtual"])
 
         # parameters
 
-        self.add_parameter('samples', type=int)
-        self.add_parameter('samplerate', type=int)
-        self.add_parameter('segments', type=int)
-        self.add_parameter('averages', type=int)
-        self.add_parameter('blocks', type=int)
-        self.add_parameter('offsets', type=list)
-        self.add_parameter('channels', type=int)
-        self.add_parameter('multimode', type=bool)
-        self.add_parameter('trigger_rate', type=float)
-        self.add_parameter('spec_trigger_delay', flags=Instrument.FLAG_GETSET, type=int)
+        self.add_parameter("samples", type=int)
+        self.add_parameter("samplerate", type=int)
+        self.add_parameter("segments", type=int)
+        self.add_parameter("averages", type=int)
+        self.add_parameter("blocks", type=int)
+        self.add_parameter("offsets", type=list)
+        self.add_parameter("channels", type=int)
+        self.add_parameter("multimode", type=bool)
+        self.add_parameter("trigger_rate", type=float)
+        self.add_parameter("spec_trigger_delay", flags=Instrument.FLAG_GETSET, type=int)
         # measurement functions
-        self.add_function('get_clock')
-        self.add_function('set_gate_func')
-        self.add_function('acquire')
+        self.add_function("get_clock")
+        self.add_function("set_gate_func")
+        self.add_function("acquire")
         # self.add_function('measure_1d_avg')
         # self.add_function('measure_1d')
-        self.add_function('spec_start')
-        self.add_function('spec_stop')
+        self.add_function("spec_start")
+        self.add_function("spec_stop")
 
         self._initializing = True
         # fixed parameters
@@ -125,11 +136,12 @@ class virtual_measure_spec(Instrument):
 
     def init_card(self):
         # abort if still starting up
-        if (self._initializing): return True
+        if self._initializing:
+            return True
 
         self._dacq.stop()
         # acquisition mode
-        if (self._multimode):
+        if self._multimode:
             self.init_card_multi()
         else:
             self.init_card_single()
@@ -144,8 +156,13 @@ class virtual_measure_spec(Instrument):
         self._dacq.set_multi_mode()
         acq_time = self._segments * self._averages / self._trigger_rate
         self._dacq.set_timeout(int(1000 * (5 + acq_time)))
-        if (self._samples * self._segments * self._averages > self._dacq.get_ramsize() / self._numchannels):
-            raise ValueError('meas_spec: card memory is not sufficient to store _segments and _averages requested')
+        if (
+            self._samples * self._segments * self._averages
+            > self._dacq.get_ramsize() / self._numchannels
+        ):
+            raise ValueError(
+                "meas_spec: card memory is not sufficient to store _segments and _averages requested"
+            )
         self._dacq.set_segmentsize(self._samples)
         self._dacq.set_memsize(self._samples * self._segments * self._averages)
         self._dacq.set_post_trigger(self._samples - 32)
@@ -175,9 +192,9 @@ class virtual_measure_spec(Instrument):
         return self._dacq.get_trigger_delay()
 
     def set_window(self, start, end):
-        '''
+        """
         Sets the start and end of the acquisition window. These values can be chosen arbitrarily and do not have to be divisible by 16 or 32.
-        '''
+        """
         c_start = int(start) // self.bit_blocksize  # floor
         c_start *= self.bit_blocksize
         # self.bit_pre = int(start) - c_start
@@ -191,14 +208,20 @@ class virtual_measure_spec(Instrument):
         self.set_samples(c_samples)
 
         self.bit_pre = int(start) - c_start
-        self.bit_post = samples - c_samples  # this is done here, to keep set_spec_trigger_delay and set_samples functional standalone.
+        self.bit_post = (
+            samples - c_samples
+        )  # this is done here, to keep set_spec_trigger_delay and set_samples functional standalone.
         if self.bit_post == 0:
             self.bit_post = None  # we later call result[self.bit_pre:self.bit_post], so bit_post has to be None instead of 0 to get the full array.
 
     def do_set_samples(self, samples):
         self.bit_pre, self.bit_post = 0, None
-        if (samples < 32): raise ValueError('meas_spec: minimum number of samples per trace is 32.')
-        if (samples % 16 != 0): raise ValueError('meas_spec: number of samples per trace must be divisible by 16.')
+        if samples < 32:
+            raise ValueError("meas_spec: minimum number of samples per trace is 32.")
+        if samples % 16 != 0:
+            raise ValueError(
+                "meas_spec: number of samples per trace must be divisible by 16."
+            )
         self._samples = samples
         self.init_card()
 
@@ -212,20 +235,21 @@ class virtual_measure_spec(Instrument):
         return self._dacq.set_spc_samplerate(rate)
 
     def do_set_channels(self, channels):
-        if ((channels < 1) | (channels > 3)): raise ValueError('meas_spec: channels must be B"01", B"10" or B"11"')
+        if (channels < 1) | (channels > 3):
+            raise ValueError('meas_spec: channels must be B"01", B"10" or B"11"')
         self._channels = channels
-        if ((channels == 1) | (channels == 2)):
+        if (channels == 1) | (channels == 2):
             self._numchannels = 1
         else:
             self._numchannels = 2
 
         # channel setup
         self._dacq.stop()
-        if (self._channels == 1):
+        if self._channels == 1:
             self._dacq.select_channel0()
-        elif (self._channels == 2):
+        elif self._channels == 2:
             self._dacq.select_channel1()
-        elif (self._channels == 3):
+        elif self._channels == 3:
             self._dacq.select_channel01()
         self.init_card()
 
@@ -253,7 +277,7 @@ class virtual_measure_spec(Instrument):
         return self._blocks
 
     def do_set_trigger_rate(self, trigger_rate):
-        ''' set expected trigger rate. used to calculate timeouts. '''
+        """set expected trigger rate. used to calculate timeouts."""
         self._trigger_rate = trigger_rate
         self.init_card()
 
@@ -261,15 +285,15 @@ class virtual_measure_spec(Instrument):
         return self._trigger_rate
 
     def do_set_offsets(self, offsets):
-        if (len(offsets) != self._numchannels):
-            raise ValueError(__name__ + 'one offset per channel is required')
+        if len(offsets) != self._numchannels:
+            raise ValueError(__name__ + "one offset per channel is required")
         self._offsets = offsets
 
     def do_get_offsets(self):
         return self._offsets
 
     def set_gate_func(self, gate_func):
-        ''' function called at start of new block '''
+        """function called at start of new block"""
         if isinstance(gate_func, str):
             self._gate_func = eval(gate_func)
         else:
@@ -286,38 +310,38 @@ class virtual_measure_spec(Instrument):
         return self._dacq.get_spc_samplerate()
 
     def acquire(self):
-        '''
+        """
         wrapper to the acquire function corresponding to the current mode setting
-        '''
+        """
 
         # acquire data
-        if (self._multimode):
+        if self._multimode:
             result = self._acquire_multimode()
         else:
             result = self._acquire_singlemode()
 
-        self._gate_func(False) # reset gate_func ("stop" awg output)
+        self._gate_func(False)  # reset gate_func ("stop" awg output)
 
         # apply offsets
-        if (self._offsets != None):
+        if self._offsets != None:
             for idx in range(len(self._offsets)):
-                if (self._segments == 1):
+                if self._segments == 1:
                     # shape of result is (samples, channels)
                     result[:, idx] += self._offsets[idx]
                 else:
                     # shape of result is (samples, channels, segments)
                     result[:, idx, :] += self._offsets[idx]
-        if (self._segments == 1):
-            result = result[self.bit_pre:self.bit_post, :]
+        if self._segments == 1:
+            result = result[self.bit_pre : self.bit_post, :]
         else:
-            result = result[self.bit_pre:self.bit_post, :, :]
+            result = result[self.bit_pre : self.bit_post, :, :]
         return result
 
     def _acquire_multimode(self):
-        '''
+        """
         acquire the number of traces specified by the _averages and _blocks parameters
         and return the averaged trace. measurement is done in multiple recording mode.
-        '''
+        """
         dat = []
         # measure first block
         self._acquire_multimode_prepare()
@@ -327,13 +351,16 @@ class virtual_measure_spec(Instrument):
             if dat_block is None:
                 raise ValueError("dat_block is empty")
             # background-measure next block
-            if (i < self._blocks - 1): self._acquire_multimode_prepare()
+            if i < self._blocks - 1:
+                self._acquire_multimode_prepare()
             # process current block
             # dat_block = numpy.asfarray(dat_block, numpy.float32)
             # dat_block = numpy.mean(dat_block, axis = 1)
             if self._segments > 1:
                 # fast averaging
-                sum = numpy.zeros((self._samples, self._numchannels, self._segments), numpy.int32)
+                sum = numpy.zeros(
+                    (self._samples, self._numchannels, self._segments), numpy.int32
+                )
                 for j in range(self._numchannels):
                     for i in range(self._averages):
                         sum[:, j, :] += dat_block[:, i, j, :]
@@ -357,55 +384,64 @@ class virtual_measure_spec(Instrument):
         return numpy.mean(numpy.array(dat), axis=0)
 
     def _acquire_multimode_prepare(self):
-        '''
+        """
         prepare and start a measurement in multipe recording mode.
         return control to the main program while the card is measuring.
-        '''
-        if (self._gate_func): self._gate_func(False)
+        """
+        if self._gate_func:
+            self._gate_func(False)
         self._dacq.stop()
         self._dacq.invalidate_buffer()
         self._dacq.start_with_trigger()
         # self._dacq.start_with_trigger_and_waitready()
-        if (self._gate_func): self._gate_func(True)
+        if self._gate_func:
+            self._gate_func(True)
 
     def _acquire_multimode_extract(self, blocking=True, averaged=True):
-        '''
+        """
         return averaged traces acquired in multiple recording mode.
 
         blocking - if False, return to the main program if acquisition is not complete yet
-        '''
-        if (blocking):
+        """
+        if blocking:
             err = self._dacq.waitready()
-            if (err == 263):
-                print('measure_spec: Timeout during data acquisition.')
+            if err == 263:
+                print("measure_spec: Timeout during data acquisition.")
                 return None
         else:
             status = self._dacq.get_card_status()
             # 'ready' or 'waitdma' flag, see p138 of the manual
-            if (~(status & 0x4) | ~(status & 0x200)): return None
+            if ~(status & 0x4) | ~(status & 0x200):
+                return None
             # todo: assumes that no error occured when status&4 occurs
 
         # time is on axis 0
-        if (self._numchannels == 2):
-            dat = self._dacq.readout_doublechannel_multimode_bin()  # channel, segment, sample
+        if self._numchannels == 2:
+            dat = (
+                self._dacq.readout_doublechannel_multimode_bin()
+            )  # channel, segment, sample
         else:
-            dat = self._dacq.readout_singlechannel_multimode_bin()  # channel, segment, sample
+            dat = (
+                self._dacq.readout_singlechannel_multimode_bin()
+            )  # channel, segment, sample
         dat = numpy.swapaxes(dat, 0, 2)  # sample, segment, channel
         # add segments axis at the end
         if self._segments > 1:
-            dat = numpy.reshape(dat, (self._samples, self._averages, self._segments, self._numchannels))
+            dat = numpy.reshape(
+                dat, (self._samples, self._averages, self._segments, self._numchannels)
+            )
             dat = numpy.swapaxes(dat, 2, 3)
-            if (averaged):
+            if averaged:
                 dat = numpy.asfarray(dat, numpy.float32)
                 dat = numpy.mean(dat, axis=1)  # sample, channel
         else:
-            if (averaged):
+            if averaged:
                 # two times faster than numpy.mean
                 dat = self._multimode_average(dat)
         return dat
 
     def _multimode_average1(self, dat):
-        ''' faster-than-numpy averaging '''
+        """faster-than-numpy averaging"""
         shp = dat.shape
         res = numpy.zeros((shp[0], shp[2]))
         for i in range(shp[0]):
@@ -414,7 +450,7 @@ class virtual_measure_spec(Instrument):
         return res
 
     def _multimode_average(self, dat):
-        ''' faster-than-numpy averaging '''
+        """faster-than-numpy averaging"""
         shp = dat.shape
         sum = numpy.zeros((shp[0], shp[2]), numpy.int)
         for i in range(shp[1]):
@@ -422,17 +458,17 @@ class virtual_measure_spec(Instrument):
         return numpy.array(res, numpy.float32) / shp[1]
 
     def _acquire_singlemode(self):
-        '''
+        """
         acquire the number of traces specified by the _averages parameter
         and return the averaged trace. measurement is done in single mode.
-        '''
+        """
 
         averaged = numpy.zeros(shape=(self._samples, 2), dtype=numpy.float32)
         for idx in range(1, 1 + self._averages):
             err = self._dacq.start_with_trigger_and_waitready()
-            if (err == 263):
-                print('measure_spec: Timeout during data acquisition.')
-                return None;
+            if err == 263:
+                print("measure_spec: Timeout during data acquisition.")
+                return None
             data = self._dacq.readout_doublechannel_singlemode_bin()
             averaged.__iadd__(data)  # numpy.array(data, numpy.float32)
         return averaged / self._averages

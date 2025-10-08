@@ -1,20 +1,21 @@
+import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-import numpy as np
+
 
 class ImageWidget(QtGui.QWidget):
     def __init__(self, parent=None):
-        super(ImageWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # Interpret image data as row-major instead of col-major
-        pg.setConfigOptions(imageAxisOrder='row-major')
+        pg.setConfigOptions(imageAxisOrder="row-major")
 
         pg.mkQApp()
         self.win = pg.GraphicsLayoutWidget()
-        self.win.setWindowTitle('pyqtgraph example: Image Analysis')
+        self.win.setWindowTitle("pyqtgraph example: Image Analysis")
 
         # A plot1 area (ViewBox + axes) for displaying the image
-        #self.plot1 = self.win.addItem() # addPlot()
+        # self.plot1 = self.win.addItem() # addPlot()
 
         self.vb = pg.ViewBox(enableMouse=True, enableMenu=True)
 
@@ -23,8 +24,8 @@ class ImageWidget(QtGui.QWidget):
         self.vb.addItem(self.item)
         self.win.addItem(self.vb, row=0, col=1)
 
-        #self.vb.setAspectLocked()
-        #self.vb.setRange(xRange=(0, 10), yRange=(0, 10))
+        # self.vb.setAspectLocked()
+        # self.vb.setRange(xRange=(0, 10), yRange=(0, 10))
 
         # Item for x-axis
         self.win.nextRow()
@@ -35,7 +36,6 @@ class ImageWidget(QtGui.QWidget):
         self.win.addItem(self.xaxis, row=1, col=1)
         self.win.addItem(self.yaxis, row=0, col=0)
 
-
         # Custom ROI for selecting an image region
         self.ROI = pg.ROI([-8, 14], [6, 5])
         self.ROI.addScaleHandle([0.5, 1], [0.5, 0.5])
@@ -44,7 +44,7 @@ class ImageWidget(QtGui.QWidget):
         self.ROI.setZValue(10)  # make sure ROI is drawn above image
 
         # Isocurve drawing
-        self.iso = pg.IsocurveItem(level=0.8, pen='g')
+        self.iso = pg.IsocurveItem(level=0.8, pen="g")
         self.iso.setParentItem(self.item)
         self.iso.setZValue(5)
 
@@ -54,11 +54,11 @@ class ImageWidget(QtGui.QWidget):
         self.win.addItem(self.hist, row=0, col=2)
 
         # Draggable line for setting isocurve level
-        self.isoLine = pg.InfiniteLine(angle=0, movable=True, pen='g')
+        self.isoLine = pg.InfiniteLine(angle=0, movable=True, pen="g")
         self.hist.vb.addItem(self.isoLine)
-        self.hist.vb.setMouseEnabled(y=False) # makes user interaction a little easier
+        self.hist.vb.setMouseEnabled(y=False)  # makes user interaction a little easier
         self.isoLine.setValue(0.8)
-        self.isoLine.setZValue(1000) # bring iso line above contrast controls
+        self.isoLine.setZValue(1000)  # bring iso line above contrast controls
 
         # Another plot1 area for displaying ROI data
         self.plot2 = self.win.addPlot(row=2, col=0, colspan=2)
@@ -68,7 +68,7 @@ class ImageWidget(QtGui.QWidget):
 
         # Generate image self.data
         self.data = np.random.normal(size=(200, 100))
-        self.data[20:80, 20:80] += 2.
+        self.data[20:80, 20:80] += 2.0
         self.data = pg.gaussianFilter(self.data, (3, 3))
         self.data += np.random.normal(size=(200, 100)) * 0.1
         self.item.setImage(self.data)
@@ -78,8 +78,8 @@ class ImageWidget(QtGui.QWidget):
         self.iso.setData(pg.gaussianFilter(self.data, (2, 2)))
 
         # set position and scale of image
-        #self.item.scale(0.2, 0.2)
-        #self.item.translate(-50, 0)
+        # self.item.scale(0.2, 0.2)
+        # self.item.translate(-50, 0)
 
         ticks = np.arange(self.data.shape[1])
         tickDictMajor = []
@@ -87,10 +87,10 @@ class ImageWidget(QtGui.QWidget):
             tickDictMajor.append(str(i**2))
         self.xaxis.set_tick_dict(dict(enumerate(tickDictMajor)))
 
-        #strings = self.xaxis.tickValues()
+        # strings = self.xaxis.tickValues()
 
         # zoom to fit imageo
-        #self.vb.autoRange()
+        # self.vb.autoRange()
 
         self.ROI.sigRegionChanged.connect(self.updatePlot)
         self.updatePlot()
@@ -113,7 +113,6 @@ class MyStringAxis(pg.AxisItem):
         self.x_strings = None
 
     def set_tick_dict(self, xdict):
-
         self.x_values = np.asarray(list(xdict.keys())) + 0.5
         self.x_strings = np.asarray(list(xdict.values()))
 
@@ -156,7 +155,7 @@ class MyStringAxis(pg.AxisItem):
             return []
 
         ## decide optimal minor tick spacing in pixels (this is just aesthetics)
-        optimalTickCount = max(2., np.log(size))
+        optimalTickCount = max(2.0, np.log(size))
 
         ## optimal minor tick spacing
         optimalSpacing = dif / optimalTickCount
@@ -165,7 +164,7 @@ class MyStringAxis(pg.AxisItem):
         p10unit = 10 ** np.floor(np.log10(optimalSpacing))
 
         ## Determine major/minor tick spacings which flank the optimal spacing.
-        intervals = np.array([1., 2., 10., 20., 100.]) * p10unit
+        intervals = np.array([1.0, 2.0, 10.0, 20.0, 100.0]) * p10unit
         minorIndex = 0
         while intervals[minorIndex + 1] <= optimalSpacing:
             minorIndex += 1
@@ -176,9 +175,9 @@ class MyStringAxis(pg.AxisItem):
             # (intervals[minorIndex], offset)    ## Pretty, but eats up CPU
         ]
 
-        if self.style['maxTickLevel'] >= 2:
+        if self.style["maxTickLevel"] >= 2:
             ## decide whether to include the last level of ticks
-            minSpacing = min(size / 20., 30.)
+            minSpacing = min(size / 20.0, 30.0)
             maxTickCount = size / minSpacing
             if dif / intervals[minorIndex] <= maxTickCount:
                 levels.append((intervals[minorIndex], offset))
@@ -187,13 +186,13 @@ class MyStringAxis(pg.AxisItem):
 
 
 ## Start Qt event loop unless running in interactive mode or using     pyside.
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     app = QtGui.QApplication([])
     app.setStyle(QtGui.QStyleFactory.create("Cleanlooks"))
 
     image_widget = ImageWidget()
 
     import sys
-    if (sys.flags.interactive != 1) or not hasattr(QtCore,     'PYQT_VERSION'):
+
+    if (sys.flags.interactive != 1) or not hasattr(QtCore, "PYQT_VERSION"):
         QtGui.QApplication.instance().exec_()

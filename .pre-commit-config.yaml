@@ -1,0 +1,109 @@
+# .pre-commit-config.yaml
+repos:
+
+
+  - repo: local
+    hooks:
+
+
+      - id: black-logged
+        name: black (logged)
+        entry: python .precommit_hooks/black_wrapper.py
+        language: system
+        types: [python]
+
+      - id: autoflake-logged
+        name: autoflake (logged)
+        entry: python .precommit_hooks/autoflake_wrapper.py
+        language: system
+        types: [python]
+
+      - id: isort-logged
+        name: isort (logged)
+        entry: python .precommit_hooks/isort_wrapper.py
+        language: system
+        types: [python]
+
+      - id: ruff-logged
+        name: ruff (logged)
+        entry: python .precommit_hooks/ruff_wrapper.py
+        language: system
+        types: [python]
+
+      - id: mypy-logged
+        name: mypy (logged)
+        entry: python .precommit_hooks/mypy_wrapper.py
+        language: system
+        types: [python]
+        
+      - id: pyupgrade-logged
+        name: pyupgrade (logged)
+        entry: python .precommit_hooks/pyupgrade_wrapper.py
+        language: system
+        types: [python]
+
+      - id: vulture-logged
+        name: vulture (logged)
+        entry: python .precommit_hooks/vulture_wrapper.py
+        language: system
+        types: [python]
+
+
+ # For powershell replace the entry with ======================
+  # entry: powershell.exe -ExecutionPolicy Bypass -File .precommit_hooks/black_wrapper.ps1
+#=================================================================
+
+  # - repo: local
+  #   hooks:
+  #     - id: pyupgrade-logged
+  #       name: pyupgrade (logged)
+  #       entry: .precommit_hooks/pyupgrade_wrapper.sh
+  #       language: system
+  #       types: [python]
+
+  #     - id: black-logged
+  #       name: black (logged)
+  #       entry: precommit_hooks/black_wrapper.sh
+  #       language: system
+  #       types: [python]
+
+  #     - id: ruff-logged
+  #       name: ruff (logged)
+  #       entry: .precommit_hooks/ruff_wrapper.sh
+  #       language: system
+  #       types: [python]
+
+
+
+
+
+
+#================================================================================
+  # # Auto-format code
+  # - repo: https://github.com/psf/black
+  #   rev: 24.8.0
+  #   hooks:
+  #     - id: black
+  #       language_version: python3
+
+  # # Lint, sort imports, and catch bugs fast
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: v0.6.8
+  #   hooks:
+  #     - id: ruff
+  #       args: ["--fix"]
+
+
+  # # Modernize syntax automatically
+  # - repo: https://github.com/asottile/pyupgrade
+  #   rev: v3.17.0
+  #   hooks:
+  #     - id: pyupgrade
+  #       args: ["--py39-plus"]
+
+  # # Type checking
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.11.2
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: [types-requests, types-PyYAML]

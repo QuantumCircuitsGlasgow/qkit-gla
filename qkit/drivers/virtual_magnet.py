@@ -1,7 +1,10 @@
+from time import sleep
+
+import numpy as np
+
 import qkit
 from qkit.core.instrument_base import Instrument
-import numpy as np
-from time import sleep
+
 
 class virtual_magnet(Instrument):
 

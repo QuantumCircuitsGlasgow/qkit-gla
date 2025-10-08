@@ -1,9 +1,11 @@
+import logging
+import time
+import types
+
+import numpy as np
+
 import qkit
 from qkit.core.instrument_base import Instrument
-import types
-import logging
-import numpy as np
-import time
 
 global conversion_factor
 conversion_factor = 52.02477434  # mT/A, solenoid in white fridge

@@ -16,11 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
-from time import time, sleep
-from qkit import visa
-import types
 import logging
+import types
+from time import sleep, time
+
+from qkit import visa
+from qkit.core.instrument_base import Instrument
+
 
 class OxfordInstruments_Kelvinox_IGH(Instrument):
     '''

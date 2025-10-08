@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # Electroautomatic_PS9000.py driver for Electroautomatic_PS9000 source measure unit
 #
@@ -17,28 +16,32 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
-from qkit import visa
-from qkit.gui.notebook.Progress_Bar import Progress_Bar
-import numpy as np
-import time
 import logging
+import time
+
+import numpy as np
+
+from qkit import visa
+from qkit.core.instrument_base import Instrument
+from qkit.gui.notebook.Progress_Bar import Progress_Bar
 
 
 class EA_PS9360(Instrument):
     sleep_time = 1e-4
-    error_codes = {0: "No error",
-                   -100: "Command error",
-                   -102: "Syntax error",
-                   -108: "Parameter not allowed",
-                   -200: "Execution error",
-                   -201: "Invalid while in local",
-                   -220: "Parameter error",
-                   -221: "Settings conflict",
-                   -222: "Data out of range",
-                   -223: "Too much data",
-                   -224: "Illegal parameter value",
-                   -999: "Safety OVP"}
+    error_codes = {
+        0: "No error",
+        -100: "Command error",
+        -102: "Syntax error",
+        -108: "Parameter not allowed",
+        -200: "Execution error",
+        -201: "Invalid while in local",
+        -220: "Parameter error",
+        -221: "Settings conflict",
+        -222: "Data out of range",
+        -223: "Too much data",
+        -224: "Illegal parameter value",
+        -999: "Safety OVP",
+    }
 
     def __init__(self, name, address, reset=False):
         """
@@ -49,22 +52,24 @@ class EA_PS9360(Instrument):
         """
         self.__name__ = __name__
         # Start VISA communication
-        logging.info(__name__ + ': Initializing instrument EA_PS900')
-        Instrument.__init__(self, name, tags=['physical'])
+        logging.info(__name__ + ": Initializing instrument EA_PS900")
+        Instrument.__init__(self, name, tags=["physical"])
         self._address = address
-        self._visainstrument = visa.instrument(self._address, read_termination='\n', write_termination='\n')
+        self._visainstrument = visa.instrument(
+            self._address, read_termination="\n", write_termination="\n"
+        )
 
-        self.add_parameter('bias_voltage', type=float, flags=Instrument.FLAG_GETSET)
-        self.add_parameter('bias_current', type=float, flags=Instrument.FLAG_GETSET)
-        self.add_parameter('power', type=float, flags=Instrument.FLAG_GETSET)
-        self.add_parameter('output', type=bool, flags=Instrument.FLAG_GETSET)
-        self.add_parameter('measure_voltage', type=float, flags=Instrument.FLAG_GET)
-        self.add_parameter('measure_current', type=float, flags=Instrument.FLAG_GET)
+        self.add_parameter("bias_voltage", type=float, flags=Instrument.FLAG_GETSET)
+        self.add_parameter("bias_current", type=float, flags=Instrument.FLAG_GETSET)
+        self.add_parameter("power", type=float, flags=Instrument.FLAG_GETSET)
+        self.add_parameter("output", type=bool, flags=Instrument.FLAG_GETSET)
+        self.add_parameter("measure_voltage", type=float, flags=Instrument.FLAG_GET)
+        self.add_parameter("measure_current", type=float, flags=Instrument.FLAG_GET)
 
-        self.add_function('set_remote_control')
-        self.add_function('reset')
-        self.add_function('ramp_voltage')
-        self.add_function('ramp_current')
+        self.add_function("set_remote_control")
+        self.add_function("reset")
+        self.add_function("ramp_voltage")
+        self.add_function("ramp_current")
 
         if reset:
             self.reset()
@@ -95,10 +100,10 @@ class EA_PS9360(Instrument):
         answer: str
             answer that is returned at query after the sent <cmd>.
         """
-        if '?' in cmd:
+        if "?" in cmd:
             ans = self._visainstrument.query(cmd).rstrip()
         else:
-            ans = self._visainstrument.query('{:s}?'.format(cmd)).rstrip()
+            ans = self._visainstrument.query(f"{cmd:s}?").rstrip()
         # TODO: self._raise_error()
         return ans
 
@@ -107,7 +112,7 @@ class EA_PS9360(Instrument):
         remote control needs to be activated to change device parameters
         status: 1 activated, 0 deactivated (local mode)
         """
-        self._write("SYST:LOCK {:d}".format(status))
+        self._write(f"SYST:LOCK {status:d}")
 
     def do_set_bias_voltage(self, bias_voltage):
         """
@@ -115,7 +120,7 @@ class EA_PS9360(Instrument):
         :param bias_voltage: float
         :return:
         """
-        self._write("source:voltage {}".format(bias_voltage))
+        self._write(f"source:voltage {bias_voltage}")
 
     def do_get_bias_voltage(self):
         """
@@ -130,7 +135,7 @@ class EA_PS9360(Instrument):
         :param bias_current: bias current value (float)
         :return:
         """
-        self._write("source:current {}".format(bias_current))
+        self._write(f"source:current {bias_current}")
 
     def do_get_bias_current(self):
         """
@@ -144,7 +149,7 @@ class EA_PS9360(Instrument):
         sets the output power (limit) of the device. (Voltage or current can have lower limits)
         power: (float) power limit in Watts
         """
-        self._write("source:power {}".format(power))
+        self._write(f"source:power {power}")
 
     def do_get_power(self):
         """
@@ -170,7 +175,7 @@ class EA_PS9360(Instrument):
         turns output on/off
         :param status: on (1) off (0)
         """
-        self._write("output {:d}".format(status))
+        self._write(f"output {status:d}")
 
     def do_get_output(self):
         """
@@ -192,9 +197,9 @@ class EA_PS9360(Instrument):
         progress_bar: bool, weather the progress_bar should be displayed
         """
         start_current = self.do_get_measure_current()
-        if np.sign(current-start_current) != np.sign(ramp_rate):
-            ramp_rate *= (-1)
-        current_values = np.arange(start_current, current, 0.1*ramp_rate)
+        if np.sign(current - start_current) != np.sign(ramp_rate):
+            ramp_rate *= -1
+        current_values = np.arange(start_current, current, 0.1 * ramp_rate)
         if progress_bar:
             pb = Progress_Bar(len(current_values))
         for c in current_values:
@@ -212,9 +217,9 @@ class EA_PS9360(Instrument):
         progress_bar: bool, weather the progress_bar should be displayed
         """
         start_voltage = self.do_get_measure_voltage()
-        if np.sign(voltage-start_voltage) != np.sign(ramp_rate):
-            ramp_rate *= (-1)
-        voltage_values = np.arange(start_voltage, voltage, 0.1*ramp_rate)
+        if np.sign(voltage - start_voltage) != np.sign(ramp_rate):
+            ramp_rate *= -1
+        voltage_values = np.arange(start_voltage, voltage, 0.1 * ramp_rate)
         if progress_bar:
             pb = Progress_Bar(len(voltage_values))
         for v in voltage_values:
@@ -227,7 +232,7 @@ class EA_PS9360(Instrument):
         """
         resets the device
         """
-        self._write('*RST')
+        self._write("*RST")
 
     def get_error(self):
         """

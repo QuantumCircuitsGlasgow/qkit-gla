@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Form implementation generated from reading ui file 'plasma1_gui.ui'
 #
 # Created: Tue Jan 10 22:45:21 2017
@@ -12,23 +10,31 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
+
     def _fromUtf8(s):
         return s
 
+
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
+
 except AttributeError:
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_MainWindow(object):
+
+class Ui_MainWindow:
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.setEnabled(True)
         MainWindow.resize(1292, 451)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
@@ -37,7 +43,9 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.graph_MC = PlotWidget(self.centralwidget)
         self.graph_MC.setGeometry(QtCore.QRect(650, 10, 630, 350))
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.graph_MC.sizePolicy().hasHeightForWidth())
@@ -51,7 +59,9 @@ class Ui_MainWindow(object):
         self.graph_MC.setObjectName(_fromUtf8("graph_MC"))
         self.graph_LL = PlotWidget(self.centralwidget)
         self.graph_LL.setGeometry(QtCore.QRect(10, 10, 630, 350))
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.graph_LL.sizePolicy().hasHeightForWidth())
@@ -146,5 +156,6 @@ class Ui_MainWindow(object):
         self.b_2.setText(_translate("MainWindow", "2h", None))
         self.b_1.setText(_translate("MainWindow", "1h", None))
         self.m_poll.setText(_translate("MainWindow", "Measure all channels", None))
+
 
 from pyqtgraph import PlotWidget

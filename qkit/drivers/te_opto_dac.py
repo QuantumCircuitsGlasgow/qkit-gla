@@ -1,9 +1,12 @@
-from qkit.core.instrument_base import Instrument
-import instruments
-import types
 import logging
-import numpy as np
+import types
 from time import sleep
+
+import instruments
+import numpy as np
+
+from qkit.core.instrument_base import Instrument
+
 
 class te_opto_dac(Instrument):
     '''

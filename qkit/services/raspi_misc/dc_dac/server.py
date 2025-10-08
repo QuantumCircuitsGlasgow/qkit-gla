@@ -23,13 +23,14 @@ Internal reference: REFCOMP floating, RD bit = 0.
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import numpy as np
-import time,sys
 import logging
+import sys
+import time
 
+import numpy as np
 import zerorpc
-
 from DAC_LTC2666_communication import DAC_LTC2666
+
 dacs = []
 dac0 = DAC_LTC2666(cs = 0, word32 = True)   #load DAC on CS0 port
 dacs.append(dac0)

@@ -16,14 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from typing import Dict, List, Generator, Any
-import numpy as np
-from ipywidgets import interact, widgets, Layout
 import logging
 
-import qkit
-import qkit.measure.timedomain.pulse_sequence as ps
+import numpy as np
+from ipywidgets import Layout, interact, widgets
+
 import qkit.measure.timedomain.awg.load_tawg as load_tawg
+import qkit.measure.timedomain.pulse_sequence as ps
 
 PLOT_ENABLE = False
 try:
@@ -33,13 +32,14 @@ try:
 except ImportError:
     pass
 
+
 # Helper functions
 def all_are_same(array):
     """Check if all elements of a list are the same."""
     return all(item == array[0] for item in array)
 
 
-def _vars_len(variables: Dict[str, List[float]]):
+def _vars_len(variables: dict[str, list[float]]):
     if variables:
         return len(list(variables.values())[0])
     else:
@@ -55,7 +55,7 @@ def dictify_variable_lists(variables):
         yield single_variables
 
 
-class TdChannel(object):
+class TdChannel:
     """
     Class managing the channels for the VirtualAWG class.
     These channels are similar to the channel of an awg.
@@ -93,7 +93,7 @@ class TdChannel(object):
         return len(self._sequences)
 
     def add_sequence(
-        self, sequence: ps.PulseSequence, **variables: List[float]
+        self, sequence: ps.PulseSequence, **variables: list[float]
     ) -> bool:
         """
         Append sequence to sequences currently stored in channel.
@@ -400,7 +400,7 @@ class TdChannel(object):
         return seq_list, ro_inds
 
 
-class VirtualAWG(object):
+class VirtualAWG:
     """
     Class managing multiple manipulation channels for a timedomain experiment (virtual AWG).
     Each channel stores pulse sequences which can be loaded onto your device.
@@ -602,7 +602,7 @@ class VirtualAWG(object):
 
         fig = plt.figure(figsize=(18, 6))
         xmin, xmax, ymin, ymax = bounds
-        samplerate = self._sample.clock
+        self._sample.clock
         # plot sequence
         for i, chan in enumerate(self.channels[1:]):
             if len(ro_inds[i]) > seq_ind:
@@ -699,14 +699,14 @@ class VirtualAWG(object):
         Currently only enabled for the tabor awg.
         """
         # Case discrimination:
-        if self._sample.awg.get_type() is "Tabor_WX1284C":
+        if self._sample.awg.get_type() == "Tabor_WX1284C":
             sequences, readout_inds = self._sync()
             load_tawg.load_tabor(
                 sequences,
                 readout_inds,
                 self._sample,
                 reset=reset,
-                show_progress_bar=show_progress_bar
+                show_progress_bar=show_progress_bar,
             )
         else:
             print("Unknown device type! Unable to load sequences.")

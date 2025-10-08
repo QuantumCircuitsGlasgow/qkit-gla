@@ -21,6 +21,7 @@ import sys
 from time import sleep
 
 import RPi.GPIO as GPIO
+
 GPIO.setmode(GPIO.BOARD)   #use RPi.GPIO layout
 
 BUT1 = 13   #gpio27

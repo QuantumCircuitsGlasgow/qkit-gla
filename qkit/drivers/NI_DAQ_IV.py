@@ -17,12 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # DAQ=qt.instruments.create('DAQ', 'NI_DAQ_IV',id='Dev1')
-import qkit
-from qkit.core.instrument_base import Instrument
 import logging
+import time
+
 import nidaq_syncIV as nidaq  # documentation see http://zone.ni.com/reference/en-XX/help/370471AM-01/
 import numpy as np
-import time
+
+from qkit.core.instrument_base import Instrument
 
 
 class NI_DAQ_IV(Instrument):
@@ -73,22 +74,46 @@ class NI_DAQ_IV(Instrument):
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/mxcprop/func193b/
         self.__name__ = __name__
         # setup
-        logging.info(__name__ + ': Initializing instrument NI DAQ')
-        Instrument.__init__(self, name, tags=['physical'])
+        logging.info(__name__ + ": Initializing instrument NI DAQ")
+        Instrument.__init__(self, name, tags=["physical"])
         if dev in nidaq.get_device_names():
             self._dev = dev
         else:
-            raise ValueError('{:s}: Cannot find device {!s}'.format(self.__name__, id))
-        self._plc = 50.
+            raise ValueError(f"{self.__name__:s}: Cannot find device {id!s}")
+        self._plc = 50.0
         self._input_channels = self._get_input_channels()
         self._output_channels = self._get_output_channels()
-        self._chan_config = dict(zip(self._input_channels, ['DEFAULT']*len(self._input_channels)))
-        self._bias_delay = dict(zip(self._output_channels, np.zeros_like(self._output_channels, dtype=float)))
-        self._sense_delay = dict(zip(self._input_channels, np.zeros_like(self._input_channels, dtype=float)))
-        self._sample_freq = dict(zip(self._input_channels, np.ones_like(self._input_channels, dtype=float)*1e4))
-        self._sense_average = dict(zip(self._input_channels, np.ones_like(self._input_channels, dtype=float)))
-        self._sense_nplc = dict(zip(self._input_channels, np.ones_like(self._input_channels, dtype=float)*1e-2))
-        self._bias_values = dict(zip(self._output_channels, np.zeros_like(self._output_channels, dtype=float)))
+        self._chan_config = dict(
+            zip(self._input_channels, ["DEFAULT"] * len(self._input_channels))
+        )
+        self._bias_delay = dict(
+            zip(
+                self._output_channels, np.zeros_like(self._output_channels, dtype=float)
+            )
+        )
+        self._sense_delay = dict(
+            zip(self._input_channels, np.zeros_like(self._input_channels, dtype=float))
+        )
+        self._sample_freq = dict(
+            zip(
+                self._input_channels,
+                np.ones_like(self._input_channels, dtype=float) * 1e4,
+            )
+        )
+        self._sense_average = dict(
+            zip(self._input_channels, np.ones_like(self._input_channels, dtype=float))
+        )
+        self._sense_nplc = dict(
+            zip(
+                self._input_channels,
+                np.ones_like(self._input_channels, dtype=float) * 1e-2,
+            )
+        )
+        self._bias_values = dict(
+            zip(
+                self._output_channels, np.zeros_like(self._output_channels, dtype=float)
+            )
+        )
         self._sweep_channels = (0, 0)
         self.bias_data = None
         self.rate = None
@@ -130,12 +155,14 @@ class NI_DAQ_IV(Instrument):
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxstarttask/
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxstoptask/
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxcleartask/
-        return nidaq.write(devchan='{:s}/ao{:d}'.format(self._dev, channel),
-                           data=data,
-                           freq=freq,
-                           minv=minv,
-                           maxv=maxv,
-                           timeout=timeout)
+        return nidaq.write(
+            devchan=f"{self._dev:s}/ao{channel:d}",
+            data=data,
+            freq=freq,
+            minv=minv,
+            maxv=maxv,
+            timeout=timeout,
+        )
 
     def read(self, channel, samples=1, freq=1e4, minv=-10.0, maxv=10.0, timeout=10.0):
         """
@@ -169,13 +196,15 @@ class NI_DAQ_IV(Instrument):
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxreadanalogscalarf64/
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxstoptask/
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxcleartask/
-        return nidaq.read(devchan='{:s}/ai{:d}'.format(self._dev, channel),
-                          samples=samples,
-                          freq=freq,
-                          minv=minv,
-                          maxv=maxv,
-                          timeout=timeout,
-                          config=self._chan_config[channel])
+        return nidaq.read(
+            devchan=f"{self._dev:s}/ai{channel:d}",
+            samples=samples,
+            freq=freq,
+            minv=minv,
+            maxv=maxv,
+            timeout=timeout,
+            config=self._chan_config[channel],
+        )
 
     def _get_input_channels(self):
         """
@@ -191,7 +220,15 @@ class NI_DAQ_IV(Instrument):
             Physical input channels.
         """
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/mxcprop/func231e/
-        return np.array(list(map(lambda x: x.split('ai')[-1], nidaq.get_physical_input_channels(self._dev))), dtype=int)
+        return np.array(
+            list(
+                map(
+                    lambda x: x.split("ai")[-1],
+                    nidaq.get_physical_input_channels(self._dev),
+                )
+            ),
+            dtype=int,
+        )
 
     def _get_output_channels(self):
         """
@@ -207,7 +244,15 @@ class NI_DAQ_IV(Instrument):
             Physical output channels.
         """
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/mxcprop/func231f/
-        return np.array(list(map(lambda x: x.split('ao')[-1], nidaq.get_physical_output_channels(self._dev))), dtype=int)
+        return np.array(
+            list(
+                map(
+                    lambda x: x.split("ao")[-1],
+                    nidaq.get_physical_output_channels(self._dev),
+                )
+            ),
+            dtype=int,
+        )
 
     def _get_counter_channels(self):
         """
@@ -223,7 +268,15 @@ class NI_DAQ_IV(Instrument):
             Physical counter channels.
         """
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/mxcprop/func2324/
-        return np.array(list(map(lambda x: x.split('ctr')[-1], nidaq.get_physical_counter_channels(self._dev))), dtype=int)
+        return np.array(
+            list(
+                map(
+                    lambda x: x.split("ctr")[-1],
+                    nidaq.get_physical_counter_channels(self._dev),
+                )
+            ),
+            dtype=int,
+        )
 
     def set_channel_config(self, val, channel):
         """
@@ -400,7 +453,9 @@ class NI_DAQ_IV(Instrument):
             self._sample_freq[channel] = sample_freq
         self._sense_nplc[channel] = val
         if not int(self._sample_freq[channel] / self._plc * self._sense_nplc[channel]):
-            logging.warning('Measurement time will increase, since samples will be set to 1. Samples ( = sample_freq / plc * nplc) must be >= 1. Check the sampling frequency and nplc settings.')
+            logging.warning(
+                "Measurement time will increase, since samples will be set to 1. Samples ( = sample_freq / plc * nplc) must be >= 1. Check the sampling frequency and nplc settings."
+            )
 
     def get_sense_nplc(self, channel=0):
         """
@@ -467,7 +522,7 @@ class NI_DAQ_IV(Instrument):
         None
         """
         self._bias_values[channel] = val
-        nidaq.write(devchan='{:s}/ao{:d}'.format(self._dev, channel), data=val)
+        nidaq.write(devchan=f"{self._dev:s}/ao{channel:d}", data=val)
 
     def get_bias_value(self, channel=0):
         """
@@ -490,12 +545,12 @@ class NI_DAQ_IV(Instrument):
     def get_sense_value(self, sample_freq=None, channel=0):
         """
         Gets sense value of channel <channel>.
-        
+
         Parameters
         ----------
         channel: int
             Number of channel of interest. Default is 0 (ai0).
-        
+
         Returns
         -------
         val: float
@@ -503,15 +558,23 @@ class NI_DAQ_IV(Instrument):
         """
         if sample_freq:
             self._sample_freq[channel] = sample_freq
-        samples = int(self._sample_freq[channel] / self._plc * self._sense_nplc[channel])
+        samples = int(
+            self._sample_freq[channel] / self._plc * self._sense_nplc[channel]
+        )
         if not samples:
             samples = 1
-        data = list(map(lambda i: nidaq.read(devchan='{:s}/ai{:d}'.format(self._dev, channel),
-                                             samples=samples,
-                                             freq=self._sample_freq[channel],
-                                             config=self._chan_config[channel]),
-                        range(int(self._sense_average[channel]))))
-        return np.mean(np.trapz(data, dx=1./(samples-1)))
+        data = list(
+            map(
+                lambda i: nidaq.read(
+                    devchan=f"{self._dev:s}/ai{channel:d}",
+                    samples=samples,
+                    freq=self._sample_freq[channel],
+                    config=self._chan_config[channel],
+                ),
+                range(int(self._sense_average[channel])),
+            )
+        )
+        return np.mean(np.trapz(data, dx=1.0 / (samples - 1)))
 
     def set_status(self, status, channel=0):
         """
@@ -572,7 +635,6 @@ class NI_DAQ_IV(Instrument):
         """
         This is a dummy function and just passes. This DAQ can only source and measure voltages and currents by means of tunnel electronics.
         """
-        pass
 
     def get_sweep_mode(self):
         """
@@ -596,11 +658,17 @@ class NI_DAQ_IV(Instrument):
         start = float(sweep[0])
         stop = float(sweep[1])
         step = float(sweep[2])
-        self.nop = int(round(abs((stop-start)/step)+1))
-        self.bias_data = np.linspace(start, np.sign(stop-start)*(np.floor(np.abs(np.round(float(stop-start)/step)))*step)+start, self.nop)  # stop is rounded down to multiples of step
-        self.rate = self._plc/self._sense_nplc[self.get_sweep_channels()[1]]
+        self.nop = int(round(abs((stop - start) / step) + 1))
+        self.bias_data = np.linspace(
+            start,
+            np.sign(stop - start)
+            * (np.floor(np.abs(np.round(float(stop - start) / step))) * step)
+            + start,
+            self.nop,
+        )  # stop is rounded down to multiples of step
+        self.rate = self._plc / self._sense_nplc[self.get_sweep_channels()[1]]
         self.set_bias_value(start)
-        time.sleep(1./self.rate)
+        time.sleep(1.0 / self.rate)
 
     def get_tracedata(self):
         """
@@ -631,15 +699,22 @@ class NI_DAQ_IV(Instrument):
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxreadanalogf64/
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxstoptask/
         # Corresponding command: http://zone.ni.com/reference/en-XX/help/370471AM-01/daqmxcfunc/daqmxcleartask/
-        output_channel, input_channel = [''.join(i).strip() for i in zip(*np.array([[self._dev] * 2,
-                                                                                    ['/ao', '/ai'],
-                                                                                    self.get_sweep_channels()]))]
-        sense_data = nidaq.sync_write_read(O_devchan=output_channel,  # device / bias channel
-                                           I_devchan=input_channel,  # device / sense channel
-                                           waveform=self.bias_data,  # bias data
-                                           rate=self.rate,  # sweep rate
-                                           timeout=self.nop/self.rate*1.1,  # 1.1 fold of the calculated measurement time, just to be on the safe side
-                                           config=self._chan_config[self.get_sweep_channels()[1]])  # sense channel configuration
+        output_channel, input_channel = (
+            "".join(i).strip()
+            for i in zip(
+                *np.array([[self._dev] * 2, ["/ao", "/ai"], self.get_sweep_channels()])
+            )
+        )
+        sense_data = nidaq.sync_write_read(
+            O_devchan=output_channel,  # device / bias channel
+            I_devchan=input_channel,  # device / sense channel
+            waveform=self.bias_data,  # bias data
+            rate=self.rate,  # sweep rate
+            timeout=self.nop
+            / self.rate
+            * 1.1,  # 1.1 fold of the calculated measurement time, just to be on the safe side
+            config=self._chan_config[self.get_sweep_channels()[1]],
+        )  # sense channel configuration
         return self.bias_data, sense_data
 
     def take_IV(self, sweep):
@@ -689,14 +764,38 @@ class NI_DAQ_IV(Instrument):
         None
         """
         self.reset()
-        self._plc = 50.
-        self._chan_config = dict(zip(self._input_channels, ['DEFAULT']*len(self._input_channels)))
-        self._bias_delay = dict(zip(self._output_channels, np.zeros_like(self._output_channels, dtype=float)))
-        self._sense_delay = dict(zip(self._input_channels, np.zeros_like(self._input_channels, dtype=float)))
-        self._sample_freq = dict(zip(self._input_channels, np.ones_like(self._input_channels, dtype=float)*1e4))
-        self._sense_average = dict(zip(self._input_channels, np.ones_like(self._input_channels, dtype=float)))
-        self._sense_nplc = dict(zip(self._input_channels, np.ones_like(self._input_channels, dtype=float)*1e-2))
-        self._bias_values = dict(zip(self._output_channels, np.zeros_like(self._output_channels, dtype=float)))
+        self._plc = 50.0
+        self._chan_config = dict(
+            zip(self._input_channels, ["DEFAULT"] * len(self._input_channels))
+        )
+        self._bias_delay = dict(
+            zip(
+                self._output_channels, np.zeros_like(self._output_channels, dtype=float)
+            )
+        )
+        self._sense_delay = dict(
+            zip(self._input_channels, np.zeros_like(self._input_channels, dtype=float))
+        )
+        self._sample_freq = dict(
+            zip(
+                self._input_channels,
+                np.ones_like(self._input_channels, dtype=float) * 1e4,
+            )
+        )
+        self._sense_average = dict(
+            zip(self._input_channels, np.ones_like(self._input_channels, dtype=float))
+        )
+        self._sense_nplc = dict(
+            zip(
+                self._input_channels,
+                np.ones_like(self._input_channels, dtype=float) * 1e-2,
+            )
+        )
+        self._bias_values = dict(
+            zip(
+                self._output_channels, np.zeros_like(self._output_channels, dtype=float)
+            )
+        )
         self._bias_values = None
         self.rate = None
         self._sweep_channels = (0, 0)
@@ -714,16 +813,20 @@ class NI_DAQ_IV(Instrument):
         -------
         None
         """
-        logging.debug('{:s}: Get all'.format(__name__))
-        print('output channels  = {!s}'.format(self._output_channels))
-        print('input channels   = {!s}'.format(self._input_channels))
-        print('channel config   = {!s}'.format(self._chan_config[channel]))
-        print('sample frequency = {:g}'.format(self._sample_freq[channel]))
-        print('sense average      = {:f}'.format(self.get_sense_average(channel=channel)))
-        print('plc                = {:g}Hz'.format(self.get_plc()))
-        print('sense nplc         = {:g}'.format(self.get_sense_nplc(channel=channel)))
-        print('bias value         = {:g}V'.format(self.get_bias_value(channel=channel)))
-        print('sense value        = {:g}V'.format(self.get_sense_value(channel=channel)))
+        logging.debug(f"{__name__:s}: Get all")
+        print(f"output channels  = {self._output_channels!s}")
+        print(f"input channels   = {self._input_channels!s}")
+        print(f"channel config   = {self._chan_config[channel]!s}")
+        print(f"sample frequency = {self._sample_freq[channel]:g}")
+        print(
+            f"sense average      = {self.get_sense_average(channel=channel):f}"
+        )
+        print(f"plc                = {self.get_plc():g}Hz")
+        print(f"sense nplc         = {self.get_sense_nplc(channel=channel):g}")
+        print(f"bias value         = {self.get_bias_value(channel=channel):g}V")
+        print(
+            f"sense value        = {self.get_sense_value(channel=channel):g}V"
+        )
         return
 
     def get_parameters(self):
@@ -740,14 +843,15 @@ class NI_DAQ_IV(Instrument):
         parlist: dict
             Parameter names as keys, corresponding channels of interest as values.
         """
-        parlist = {'channel_config': self._input_channels,
-                   #'bias_delay': self._output_channels,
-                   #'sense_delay': self._input_channels,
-                   'sample_freq': self._input_channels,
-                   'sense_average': self._input_channels,
-                   'sense_nplc': self._input_channels,
-                   'bias_value': self._output_channels,
-                  }
+        parlist = {
+            "channel_config": self._input_channels,
+            #'bias_delay': self._output_channels,
+            #'sense_delay': self._input_channels,
+            "sample_freq": self._input_channels,
+            "sense_average": self._input_channels,
+            "sense_nplc": self._input_channels,
+            "bias_value": self._output_channels,
+        }
         return parlist
 
     def get(self, param, **kwargs):
@@ -767,10 +871,22 @@ class NI_DAQ_IV(Instrument):
         parlist: dict
             Parameter names as keys, values of corresponding channels as values.
         """
-        channels = kwargs.get('channels')
-        if channels is [None]:
-            return tuple(eval('map(lambda channel, self=self: self.get_{:s}(), [None])'.format(param)))
-            #return eval('self.get_{:s}()'.format(param))
+        channels = kwargs.get("channels")
+        if channels == [None]:
+            return tuple(
+                eval(
+                    "map(lambda channel, self=self: self.get_{:s}(), [None])".format(
+                        param
+                    )
+                )
+            )
+            # return eval('self.get_{:s}()'.format(param))
         else:
-            return tuple(eval('map(lambda channel, self=self: self.get_{:s}(channel=channel), [{:s}])'.format(param, ', '.join(map(str, channels)))))
-            #return tuple([eval('self.get_{:s}(channel={!s})'.format(param, channel)) for channel in channels])
+            return tuple(
+                eval(
+                    "map(lambda channel, self=self: self.get_{:s}(channel=channel), [{:s}])".format(
+                        param, ", ".join(map(str, channels))
+                    )
+                )
+            )
+            # return tuple([eval('self.get_{:s}(channel={!s})'.format(param, channel)) for channel in channels])

@@ -16,25 +16,28 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import numpy as np
 import logging
-from time import sleep, time
 import sys
 import threading
-from qkit.analysis.circle_fit.circle_fit_2019 import circuit
+from time import sleep, time
+
+import numpy as np
+
 import qkit
+from qkit.analysis.circle_fit.circle_fit_2019 import circuit
+
 if qkit.module_available("matplotlib"):
     import matplotlib.pylab as plt
 if qkit.module_available("scipy"):
     from scipy.optimize import curve_fit
     from scipy.interpolate import interp1d, UnivariateSpline
-from qkit.storage import store as hdf
-from qkit.analysis.resonator import Resonator as resonator
-from qkit.gui.plot import plot as qviewkit
-from qkit.gui.notebook.Progress_Bar import Progress_Bar
-from qkit.measure.measurement_class import Measurement
-import qkit.measure.write_additional_files as waf
 
+import qkit.measure.write_additional_files as waf
+from qkit.analysis.resonator import Resonator as resonator
+from qkit.gui.notebook.Progress_Bar import Progress_Bar
+from qkit.gui.plot import plot as qviewkit
+from qkit.measure.measurement_class import Measurement
+from qkit.storage import store as hdf
 
 ##################################################################
 

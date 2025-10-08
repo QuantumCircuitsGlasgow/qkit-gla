@@ -42,8 +42,8 @@ try:
     import SocketServer
 except ImportError:
     import socketserver as SocketServer
-from threading import Thread
 
+from threading import Thread
 #import os,sys
 from time import sleep
 

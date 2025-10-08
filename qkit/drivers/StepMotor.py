@@ -15,10 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import zerorpc
-from qkit.core.instrument_base import Instrument
 import logging
 import types
+
+import zerorpc
+
+from qkit.core.instrument_base import Instrument
 from qkit.gui.notebook.Progress_Bar import Progress_Bar
 
 

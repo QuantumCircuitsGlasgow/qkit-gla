@@ -15,29 +15,36 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import qkit
-from qkit.core.instrument_base import Instrument
-import logging
-import serial
-import time
 import atexit
+import logging
 import sys
+import time
+
+import serial
+
+from qkit.core.instrument_base import Instrument
+
 
 class Agilent_TwissTorr74(Instrument):
-
     def __init__(self, name, address, reset=False):
-        Instrument.__init__(self, name, tags=['physical'])
-        logging.info(__name__ + ': Initializing instrument Twisstorr')
+        Instrument.__init__(self, name, tags=["physical"])
+        logging.info(__name__ + ": Initializing instrument Twisstorr")
         if sys.version_info[0] < 3:
+
             def enc(string):
                 return string
+
             def dec(string):
                 return string
+
         else:
+
             def enc(string):
-                return string.encode('latin-1')
+                return string.encode("latin-1")
+
             def dec(byte):
-                return byte.decode('latin-1')
+                return byte.decode("latin-1")
+
         self._enc = enc
         self._dec = dec
         self.setup(address)
@@ -81,7 +88,7 @@ class Agilent_TwissTorr74(Instrument):
         value = self.ser.read(rem_char)
         return value
 
-    def command(self, addr=0x80, window='205', write=False, data=None):
+    def command(self, addr=0x80, window="205", write=False, data=None):
         """
         Function building the command string sent to the device.
         For possible commands, see manual or use predefined functions in this module.
@@ -96,16 +103,16 @@ class Agilent_TwissTorr74(Instrument):
             cmd (str): Complete string to be sent to the device including a CRC
         """
 
-        start = '\x02'
+        start = "\x02"
         command_string = start + chr(addr) + window
 
         if write:
-            command_string += '1'
+            command_string += "1"
             command_string += data
         else:
-            command_string += '0'
+            command_string += "0"
 
-        end = '\x03'
+        end = "\x03"
         command_string += end
 
         crc = ord(command_string[1]) ^ ord(command_string[2])
@@ -135,27 +142,27 @@ class Agilent_TwissTorr74(Instrument):
             Decoded answer as described above.
         """
         answer = self._dec(answer)
-        start = answer[0]
-        address = answer[1]
+        answer[0]
+        answer[1]
         if len(answer) == 6:
             if answer[2] == chr(0x06):
-                return answer[2], 'ACK'
+                return answer[2], "ACK"
             if answer[2] == chr(0x15):
-                return answer[2], 'NACK'
+                return answer[2], "NACK"
             if answer[2] == chr(0x32):
-                return answer[2], 'Unknown Window'
+                return answer[2], "Unknown Window"
             if answer[2] == chr(0x33):
-                return answer[2], 'Data Type Error'
+                return answer[2], "Data Type Error"
             if answer[2] == chr(0x34):
-                return answer[2], 'Out of Range'
+                return answer[2], "Out of Range"
             if answer[2] == chr(0x35):
-                return answer[2], 'Window Read Only or Disabled'
+                return answer[2], "Window Read Only or Disabled"
             else:
                 return answer
         else:
-            window = answer[2] + answer[3] + answer[4]
-            rw = answer[5]
-            data = ''
+            answer[2] + answer[3] + answer[4]
+            answer[5]
+            data = ""
             for i in range(6, len(answer) - 3):
                 data += answer[i]
             return data
@@ -164,9 +171,9 @@ class Agilent_TwissTorr74(Instrument):
         window = "008"
         write = True
         if serial:
-            data = '0'
+            data = "0"
         else:
-            data = '1'
+            data = "1"
         cmd = self.command(window=window, write=write, data=data)
         answer = self.answer(self._remote_cmd(cmd))
         return answer
@@ -182,9 +189,9 @@ class Agilent_TwissTorr74(Instrument):
         window = "107"
         write = True
         if active_stop:
-            data = '1'
+            data = "1"
         else:
-            data = '0'
+            data = "0"
         cmd = self.command(window=window, write=write, data=data)
         answer = self.answer(self._remote_cmd(cmd))
         return answer
@@ -210,11 +217,19 @@ class Agilent_TwissTorr74(Instrument):
                 5: 'Normal'
                 6: 'Fail'
         """
-        window = '205'
+        window = "205"
         write = False
         cmd = self.command(window=window, write=write)
         answer = self.answer(self._remote_cmd(cmd))
-        meaning = ['Stop', 'Waiting Interlock', 'Starting', 'Auto-tuning', 'Braking', 'Normal', 'Fail']
+        meaning = [
+            "Stop",
+            "Waiting Interlock",
+            "Starting",
+            "Auto-tuning",
+            "Braking",
+            "Normal",
+            "Fail",
+        ]
         return int(answer), meaning[int(answer)]
 
     def get_error(self):
@@ -250,7 +265,7 @@ class Agilent_TwissTorr74(Instrument):
         write = False
         cmd = self.command(window=window, write=write)
         answer = self.answer(self._remote_cmd(cmd))
-        answer = int(answer) / 60.
+        answer = int(answer) / 60.0
         return answer
 
     def get_temp(self):
@@ -260,7 +275,7 @@ class Agilent_TwissTorr74(Instrument):
         Returns:
             temp (int): Pump temperature in degC
         """
-        window = '204'
+        window = "204"
         write = False
         cmd = self.command(window=window, write=write)
         answer = self.answer(self._remote_cmd(cmd))
@@ -273,7 +288,7 @@ class Agilent_TwissTorr74(Instrument):
         Returns:
             power (int): Pump power in Watts
         """
-        window = '202'
+        window = "202"
         write = False
         cmd = self.command(window=window, write=write)
         answer = self.answer(self._remote_cmd(cmd))
@@ -286,7 +301,7 @@ class Agilent_TwissTorr74(Instrument):
         Returns:
             cycle (int): Cycle number
         """
-        window = '301'
+        window = "301"
         write = False
         cmd = self.command(window=window, write=write)
         answer = self.answer(self._remote_cmd(cmd))
@@ -299,7 +314,7 @@ class Agilent_TwissTorr74(Instrument):
         Returns:
             pump life (int): Pump life in hours
         """
-        window = '302'
+        window = "302"
         write = False
         cmd = self.command(window=window, write=write)
         answer = self.answer(self._remote_cmd(cmd))
@@ -309,9 +324,9 @@ class Agilent_TwissTorr74(Instrument):
         """
         Start the pump
         """
-        window = '000'
+        window = "000"
         write = True
-        data = '1'
+        data = "1"
         cmd = self.command(window=window, write=write, data=data)
         answer = self.answer(self._remote_cmd(cmd))
         return answer
@@ -322,7 +337,7 @@ class Agilent_TwissTorr74(Instrument):
         """
         window = "000"
         write = True
-        data = '0'
+        data = "0"
         cmd = self.command(window=window, write=write, data=data)
         answer = self.answer(self._remote_cmd(cmd))
         return answer
@@ -372,7 +387,7 @@ class Agilent_TwissTorr74(Instrument):
         write = True
         data = str(freq)
         while len(data) < 6:
-            data = '0' + data
+            data = "0" + data
         cmd = self.command(window=window, write=write, data=data)
         answer = self.answer(self._remote_cmd(cmd))
         return answer

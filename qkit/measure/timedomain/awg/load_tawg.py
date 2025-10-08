@@ -15,11 +15,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import gc
+import logging
+
 # import qkit  # ToDO: flow comments?
 import numpy as np
-import logging
+
 from qkit.gui.notebook.Progress_Bar import Progress_Bar
-import gc
 
 
 def _adjust_wfs_for_tabor(wf1, wf2, ro_index, chpair, segment, sample):
@@ -32,7 +34,7 @@ def _adjust_wfs_for_tabor(wf1, wf2, ro_index, chpair, segment, sample):
     # Adjust length to fit marker at arbitrary positions
     if readout_ind + 10 > len(wf1):
         marker1 = np.zeros(readout_ind + 10)
-        marker1[readout_ind:readout_ind + 10] = 1
+        marker1[readout_ind : readout_ind + 10] = 1
         wf1 = np.append(wf1, np.zeros(readout_ind + 10 - len(wf1)))
         wf2 = np.append(wf2, np.zeros(readout_ind + 10 - len(wf2)))
     elif readout_ind < 0:
@@ -42,11 +44,11 @@ def _adjust_wfs_for_tabor(wf1, wf2, ro_index, chpair, segment, sample):
         wf2 = np.append(np.zeros(np.abs(readout_ind)), wf2)
     else:
         marker1 = np.zeros_like(wf1)
-        marker1[readout_ind:readout_ind + 10] = 1
+        marker1[readout_ind : readout_ind + 10] = 1
     # for single channel pulses
     if len(wf1) > len(wf2):
-        wf2 = np.append(wf2, np.zeros(len(wf1)-len(wf2)))
-    
+        wf2 = np.append(wf2, np.zeros(len(wf1) - len(wf2)))
+
     # all wfms start and end with 0
     wf1 = np.append(0, wf1)
     wf1 = np.append(wf1, 0)
@@ -54,7 +56,7 @@ def _adjust_wfs_for_tabor(wf1, wf2, ro_index, chpair, segment, sample):
     wf2 = np.append(wf2, 0)
     marker1 = np.append(0, marker1)
     marker1 = np.append(marker1, 0)
-        
+
     end_zeros = len(wf1) % divisor
     # minimum waveform is 192 points, handled by the Tabor driver
     if end_zeros != 0:
@@ -87,15 +89,17 @@ def load_tabor(channel_sequences, ro_index, sample, reset=True, show_progress_ba
             number_of_channels += 1
             complex_channel.append(False)
     if number_of_channels > awg._numchannels:
-        raise ValueError('more sequences than channels')
+        raise ValueError("more sequences than channels")
     # reordering channels if necessary
     if number_of_channels > 2:
         if complex_channel[:2] == [False, True]:
-            logging.warning('Channels reordered! Please do not split complex channels on two different channelpairs.'
-                            'Complex channel is on chpair 1')
+            logging.warning(
+                "Channels reordered! Please do not split complex channels on two different channelpairs."
+                "Complex channel is on chpair 1"
+            )
             channel_sequences[:2] = [channel_sequences[1], channel_sequences[0]]
             complex_channel[:2] = [True, False]
-    #qkit.flow.start()
+    # qkit.flow.start()
 
     if reset:
         _reset(awg, number_of_channels, ro_index)
@@ -106,7 +110,7 @@ def load_tabor(channel_sequences, ro_index, sample, reset=True, show_progress_ba
             awg.define_sequence(3, len(ro_index))
     # Loading the waveforms into the AWG, differentiating between all cases
     if show_progress_bar:
-        p = Progress_Bar(len(ro_index), 'Load AWG')
+        p = Progress_Bar(len(ro_index), "Load AWG")
 
     if number_of_channels == 1:
         for j, seq in enumerate(channel_sequences[0]):
@@ -134,7 +138,9 @@ def load_tabor(channel_sequences, ro_index, sample, reset=True, show_progress_ba
                 if show_progress_bar:
                     p.iterate()
         else:
-            for j, seq in enumerate(zip(channel_sequences[0], channel_sequences[1], channel_sequences[2])):
+            for j, seq in enumerate(
+                zip(channel_sequences[0], channel_sequences[1], channel_sequences[2])
+            ):
                 _adjust_wfs_for_tabor(seq[0], seq[1], ro_index, 1, j, sample)
                 _adjust_wfs_for_tabor(seq[2], [0], ro_index, 2, j, sample)
                 if show_progress_bar:
@@ -148,20 +154,30 @@ def load_tabor(channel_sequences, ro_index, sample, reset=True, show_progress_ba
                 if show_progress_bar:
                     p.iterate()
         elif complex_channel == [True, False, False]:
-            for j, seq in enumerate(zip(channel_sequences[0], channel_sequences[1], channel_sequences[2])):
+            for j, seq in enumerate(
+                zip(channel_sequences[0], channel_sequences[1], channel_sequences[2])
+            ):
                 _adjust_wfs_for_tabor(seq[0].real, seq[0].imag, ro_index, 1, j, sample)
                 _adjust_wfs_for_tabor(seq[1], seq[2], ro_index, 2, j, sample)
                 if show_progress_bar:
                     p.iterate()
         elif complex_channel == [False, False, True]:
-            for j, seq in enumerate(zip(channel_sequences[0], channel_sequences[1], channel_sequences[2])):
+            for j, seq in enumerate(
+                zip(channel_sequences[0], channel_sequences[1], channel_sequences[2])
+            ):
                 _adjust_wfs_for_tabor(seq[0], seq[1], ro_index, 1, j, sample)
                 _adjust_wfs_for_tabor(seq[2].real, seq[2].imag, ro_index, 2, j, sample)
                 if show_progress_bar:
                     p.iterate()
         else:
-            for j, seq in enumerate(zip(channel_sequences[0], channel_sequences[1],
-                                        channel_sequences[2], channel_sequences[3])):
+            for j, seq in enumerate(
+                zip(
+                    channel_sequences[0],
+                    channel_sequences[1],
+                    channel_sequences[2],
+                    channel_sequences[3],
+                )
+            ):
                 _adjust_wfs_for_tabor(seq[0], seq[1], ro_index, 1, j, sample)
                 _adjust_wfs_for_tabor(seq[2], seq[3], ro_index, 2, j, sample)
                 if show_progress_bar:
@@ -173,11 +189,11 @@ def load_tabor(channel_sequences, ro_index, sample, reset=True, show_progress_ba
         num_channels = [1, 2]
     else:
         num_channels = [1, 2, 3, 4]
-    return np.all([awg.get('ch%i_status' % i) for i in num_channels])
+    return np.all([awg.get("ch%i_status" % i) for i in num_channels])
 
 
 def _reset(awg, num_channels, ro_index):
-    awg.set('p%i_runmode' % 1, 'SEQ')
+    awg.set("p%i_runmode" % 1, "SEQ")
     awg.define_sequence(1, len(ro_index))
     awg.set_ch1_status(True)
     awg.set_ch2_status(True)
@@ -190,7 +206,7 @@ def _reset(awg, num_channels, ro_index):
     awg.set_ch2_marker_output(True)
     awg.set_ch2_marker_high(1)
     if num_channels > 2:
-        awg.set('p%i_runmode' % 2, 'SEQ')
+        awg.set("p%i_runmode" % 2, "SEQ")
         awg.define_sequence(3, len(ro_index))
         awg.set_ch3_status(True)
         awg.set_ch4_status(True)

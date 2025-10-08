@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Remote interface client (RIC) to access the RI service or any zerorpc service
 
@@ -13,22 +12,23 @@ To use the client to control a qkit instance, just open a new notebook and execu
 """
 import qkit
 
-#import logging # the logging mechanism does not work here, since qkit is not started
-
+# import logging # the logging mechanism does not work here, since qkit is not started
 
 
 def __update_tab(ric):
     # try to be smart and add the remote functions to the __dict__ for tabbing in ipython
     rflist = ric._zerorpc_list()
-    for f in rflist: 
-        ric.__dict__.update({f:getattr(ric,f)})
+    for f in rflist:
+        ric.__dict__.update({f: getattr(ric, f)})
+
 
 def __getdoc():
     return _zerorpc_help
-    
-    
-def start_ric(host = None,port = None):
+
+
+def start_ric(host=None, port=None):
     import zerorpc
+
     """
     starts a remote interface client (ric)
     to a 
@@ -39,18 +39,19 @@ def start_ric(host = None,port = None):
     ric is based on zerorpc, so every zerorpc server should be accessible
     
     """
-    ric = zerorpc.Client(); 
+    ric = zerorpc.Client()
     if not host:
-        host = qkit.cfg.get("ris_host","127.0.0.1")
+        host = qkit.cfg.get("ris_host", "127.0.0.1")
     if not port:
-        port = qkit.cfg.get("ris_port",5700)
-    print("starting ric client on host %s and port %s" % (host,port))
+        port = qkit.cfg.get("ris_port", 5700)
+    print(f"starting ric client on host {host} and port {port}")
     ric.connect("tcp://" + host + ":" + str(port))
-    
-    qkit.ric = ric    
+
+    qkit.ric = ric
     __update_tab(ric)
-    
+
     return ric
+
 
 """
 list of internal functions
@@ -63,14 +64,15 @@ _zerorpc_inspect to retrieve everything at once
 """
 
 
-def control_panel(ric = None):
-    from ipywidgets import Button, HTML,HBox,Accordion
+def control_panel(ric=None):
     from IPython.core.display import display
+    from ipywidgets import HTML, Accordion, Button, HBox
+
     def fmt(inp):
         if inp is None:
             return "--"
         elif type(inp) is float:
-            return "{:.4g}".format(inp)
+            return f"{inp:.4g}"
         else:
             return str(inp)
 
@@ -80,12 +82,18 @@ def control_panel(ric = None):
     def update_instrument_params(b):
         insdict = ric.get_all_instrument_params()
         for ins in sorted(insdict):
-            if not ins in b.accordions:
+            if ins not in b.accordions:
                 b.accordions[ins] = Accordion()
             table = "<table style='line-height:180%'>"  # <tr style='font-weight:bold'><td> Parameter </td><td>Value</td></tr>
             for p in sorted(insdict[ins]):
-                table += "<tr><td style='text-align:right;padding-right:10px'>" + str(p) + "</td><td>" + fmt(insdict[ins][p][0]) + insdict[ins][p][
-                    1] + "</td></tr>"
+                table += (
+                    "<tr><td style='text-align:right;padding-right:10px'>"
+                    + str(p)
+                    + "</td><td>"
+                    + fmt(insdict[ins][p][0])
+                    + insdict[ins][p][1]
+                    + "</td></tr>"
+                )
             table += """</table>"""
             b.accordions[ins].children = [HTML(table)]
             b.accordions[ins].set_title(0, ins)
@@ -102,4 +110,4 @@ def control_panel(ric = None):
     stop_button.on_click(lambda b: qkit.ric.stop_measure())
     stop_button.button_style = "danger"
     update_instrument_params(update_button)
-    display(HBox([update_button,stop_button]),update_button.hbox)
+    display(HBox([update_button, stop_button]), update_button.hbox)

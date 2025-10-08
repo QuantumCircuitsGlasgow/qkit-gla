@@ -18,13 +18,15 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-import time
-import sys
 import logging
-#import numpy
+import sys
+import time
 
 import rpyc
 from rpyc.utils.server import ThreadedServer
+
+#import numpy
+
 
 DEBUG = False 
 def logstr(logstring):

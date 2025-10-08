@@ -2,11 +2,14 @@
 # Markus Jerger <markus.jerger@kit.edu>, 2011
 # modified by Sebastian Probst <Sebastian.Probst@kit.edu>, 2012
 
-from qkit.core.instrument_base import Instrument
-from qkit import visa
-import types
 import logging
+import types
+
 import numpy as np
+
+from qkit import visa
+from qkit.core.instrument_base import Instrument
+
 
 class Agilent_DSO(Instrument):
     '''

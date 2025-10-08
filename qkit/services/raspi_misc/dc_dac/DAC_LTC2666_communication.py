@@ -28,10 +28,12 @@ At present, the 24bit variant is implemented.
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import time,sys
 import logging
+import sys
+import time
 
 import spidev
+
 
 def bytes_from_nibbles(nibbles):
     '''

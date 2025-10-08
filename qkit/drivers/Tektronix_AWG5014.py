@@ -17,12 +17,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
-from qkit import visa
-import types
 import logging
-import numpy
 import struct
+import types
+
+import numpy
+
+from qkit import visa
+from qkit.core.instrument_base import Instrument
+
 
 class Tektronix_AWG5014(Instrument):
     '''
@@ -335,7 +338,7 @@ class Tektronix_AWG5014(Instrument):
         self._visainstrument.write('WLIS:WAV:DEL ALL')
 
     def load_waveform(self, channel, filename, drive='Z:', path='\\'):
-        '''
+        r'''
         Use this command to directly load a sequence file or a waveform file to a specific channel.
 
         Input:
@@ -382,7 +385,7 @@ class Tektronix_AWG5014(Instrument):
         self._visainstrument.write('AWGC:SRES "%s","%s"' % (filename, drive))
 
     def save_settings(self, filename, drive='Z:', path='\\'):
-        '''
+        r'''
         This command saves the AWG's current setting to the specified settings file.
         Default path is the Z:\ drive, , which is located at
         "C:\Documents and Settings\All Users\Documents\Waveforms".
@@ -939,7 +942,7 @@ class Tektronix_AWG5014(Instrument):
         # Check for errors
         dim = len(w)
 
-        if (not((len(w)==len(m1)) and ((len(m1)==len(m2))))):
+        if (not((len(w)==len(m1)) and (len(m1)==len(m2)))):
             return 'error'
 
         self._values['files'][filename]={}

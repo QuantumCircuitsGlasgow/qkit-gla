@@ -31,6 +31,7 @@
 
 # GPIO settings
 import RPi.GPIO as GPIO
+
 GPIO.setmode(GPIO.BOARD)   #use RPi.GPIO layout
 
 OUTPUT = 21   #gpio9
@@ -46,11 +47,12 @@ try:
     import SocketServer
 except ImportError:
     import socketserver as SocketServer
-from threading import Thread
-from sendMail import *
 
+from threading import Thread
 #import os,sys
 from time import sleep
+
+from sendMail import *
 
 
 def _send_mail(m = ''):

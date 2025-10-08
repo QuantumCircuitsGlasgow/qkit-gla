@@ -3,10 +3,10 @@
 # https://gist.github.com/cpascual/cdcead6c166e63de2981bc23f5840a98
 #############################################################################
 #
-# This file was adapted from Taurus TEP17, but all taurus dependencies were 
+# This file was adapted from Taurus TEP17, but all taurus dependencies were
 # removed so that it works with just pyqtgraph
 #
-# Just run it and play with the zoom to see how the labels and tick positions 
+# Just run it and play with the zoom to see how the labels and tick positions
 # automatically adapt to the shown range
 #
 #############################################################################
@@ -35,10 +35,11 @@ This module provides date-time aware axis
 
 __all__ = ["DateAxisItem"]
 
-import numpy
-from pyqtgraph import AxisItem
 from datetime import datetime, timedelta
 from time import mktime
+
+import numpy
+from pyqtgraph import AxisItem
 
 
 class DateAxisItem(AxisItem):
@@ -51,7 +52,7 @@ class DateAxisItem(AxisItem):
     It provides a  :meth:`attachToPlotItem` method to add it to a given
     PlotItem
     """
-    
+
     # Max width in pixels reserved for each label in axis
     _pxLabelWidth = 80
 
@@ -66,7 +67,7 @@ class DateAxisItem(AxisItem):
         rounding in a decimal base
         """
 
-        maxMajSteps = int(size/self._pxLabelWidth)
+        maxMajSteps = int(size / self._pxLabelWidth)
 
         dt1 = datetime.fromtimestamp(minVal)
         dt2 = datetime.fromtimestamp(maxVal)
@@ -82,8 +83,7 @@ class DateAxisItem(AxisItem):
 
         elif dx > 5270400:  # 3600s*24*61 = 61 days
             d = timedelta(days=31)
-            dt = dt1.replace(day=1, hour=0, minute=0,
-                             second=0, microsecond=0) + d
+            dt = dt1.replace(day=1, hour=0, minute=0, second=0, microsecond=0) + d
             while dt < dt2:
                 # make sure that we are on day 1 (even if always sum 31 days)
                 dt = dt.replace(day=1)
@@ -106,8 +106,9 @@ class DateAxisItem(AxisItem):
 
         elif dx > 1200:  # 60s*20 = 20 minutes
             d = timedelta(minutes=10)
-            dt = dt1.replace(minute=(dt1.minute // 10) * 10,
-                             second=0, microsecond=0) + d
+            dt = (
+                dt1.replace(minute=(dt1.minute // 10) * 10, second=0, microsecond=0) + d
+            )
             while dt < dt2:
                 majticks.append(mktime(dt.timetuple()))
                 dt += d
@@ -135,7 +136,7 @@ class DateAxisItem(AxisItem):
 
         L = len(majticks)
         if L > maxMajSteps:
-            majticks = majticks[::int(numpy.ceil(float(L) / maxMajSteps))]
+            majticks = majticks[:: int(numpy.ceil(float(L) / maxMajSteps))]
 
         return [(d.total_seconds(), majticks)]
 
@@ -165,13 +166,13 @@ class DateAxisItem(AxisItem):
 
         else:
             # less than 2s (show microseconds)
-            fmt = '[+%fus]'  # explicitly relative to last second
+            fmt = "[+%fus]"  # explicitly relative to last second
         for x in values:
             try:
                 t = datetime.fromtimestamp(x)
                 ret.append(t.strftime(fmt))
             except ValueError:  # Windows can't handle dates before 1970
-                ret.append('')
+                ret.append("")
 
         return ret
 
@@ -180,14 +181,14 @@ class DateAxisItem(AxisItem):
         :param plotItem: (PlotItem)
         """
         self.setParentItem(plotItem)
-        self._oldAxis = plotItem.axes[self.orientation]['item']
+        self._oldAxis = plotItem.axes[self.orientation]["item"]
         if type(self._oldAxis) != type(self):
             viewBox = plotItem.getViewBox()
             self.linkToView(viewBox)
-            
+
             self._oldAxis.hide()
-            plotItem.axes[self.orientation]['item'] = self
-            pos = plotItem.axes[self.orientation]['pos']
+            plotItem.axes[self.orientation]["item"] = self
+            pos = plotItem.axes[self.orientation]["pos"]
             old_item = plotItem.layout.itemAt(*pos)
             plotItem.layout.removeItem(old_item)
             plotItem.layout.addItem(self, *pos)

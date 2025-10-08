@@ -39,13 +39,16 @@ The DAC is 16bit, so the voltage resolution is 10V / 65536 = 0.15mV
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
-from qkit.instruments.DC_DAC_LTC2666 import DC_DAC_LTC2666
 import logging
-import types
 import time
-from qkit.gui.notebook.Progress_Bar import Progress_Bar
+import types
+
 import numpy as np
+
+from qkit.core.instrument_base import Instrument
+from qkit.gui.notebook.Progress_Bar import Progress_Bar
+from qkit.instruments.DC_DAC_LTC2666 import DC_DAC_LTC2666
+
 
 class Virtual_Current_Source(DC_DAC_LTC2666):
     '''

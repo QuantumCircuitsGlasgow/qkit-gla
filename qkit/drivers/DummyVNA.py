@@ -15,8 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-from qkit.core.instrument_base import Instrument
 import numpy as np
+
+from qkit.core.instrument_base import Instrument
 
 
 class DummyVNA(Instrument):
@@ -28,8 +29,9 @@ class DummyVNA(Instrument):
     No Docstrings. If you don't know what the functions do, you should go into the lab first and measure with a real
     VNA.
     """
+
     def __init__(self, name):
-        Instrument.__init__(self, name, tags=['virtual'])
+        Instrument.__init__(self, name, tags=["virtual"])
         self.nop = 1001
         self.startfreq = 4e9
         self.stopfreq = 5e9
@@ -37,21 +39,29 @@ class DummyVNA(Instrument):
         self.span = self.stopfreq - self.startfreq
         self.centerfreq = (self.startfreq + self.stopfreq) / 2
         self._ready = False
-        self.add_parameter('power', type=float, minval=-85, maxval=10, units='dBm',offset=True,flags=Instrument.FLAG_GET_AFTER_SET|Instrument.FLAG_GETSET)
-        self.add_function('get_freqpoints')
-        self.add_function('get_tracedata')
-        self.add_function('get_sweeptime_averages')
-        self.add_function('pre_measurement')
-        self.add_function('start_measurement')
-        self.add_function('ready')
-        self.add_function('post_measurement')
+        self.add_parameter(
+            "power",
+            type=float,
+            minval=-85,
+            maxval=10,
+            units="dBm",
+            offset=True,
+            flags=Instrument.FLAG_GET_AFTER_SET | Instrument.FLAG_GETSET,
+        )
+        self.add_function("get_freqpoints")
+        self.add_function("get_tracedata")
+        self.add_function("get_sweeptime_averages")
+        self.add_function("pre_measurement")
+        self.add_function("start_measurement")
+        self.add_function("ready")
+        self.add_function("post_measurement")
         self.power = 0
-        
+
     def do_get_power(self):
-        return  self.power
-    
-    def do_set_power(self,value):
-        print("Setting VNA power to ",value)
+        return self.power
+
+    def do_set_power(self, value):
+        print("Setting VNA power to ", value)
         self.power = value
 
     def set_startfreq(self, startfreq):
@@ -95,10 +105,10 @@ class DummyVNA(Instrument):
     def get_freqpoints(self):
         return np.linspace(self.startfreq, self.stopfreq, self.nop)
 
-    def get_sweeptime_averages(self,query=True):
+    def get_sweeptime_averages(self, query=True):
         return self.sweeptime_averages
 
-    def get_sweeptime(self,query=True):
+    def get_sweeptime(self, query=True):
         return 1
 
     def get_averages(self):
@@ -108,15 +118,18 @@ class DummyVNA(Instrument):
         return False
 
     def get_tracedata(self, RealImag=None):
-
         def S21_notch(f, fr, Ql, Qc):
-            return 1. - Ql / Qc / (1. + 2j * Ql * (f - fr) / fr)
+            return 1.0 - Ql / Qc / (1.0 + 2j * Ql * (f - fr) / fr)
 
         Qi = np.random.normal(2000, 500)
-        Qc = np.random.normal(1500, 500)  # for a nice signal the resonance is overcoupled
+        Qc = np.random.normal(
+            1500, 500
+        )  # for a nice signal the resonance is overcoupled
         fr = np.random.normal((self.stopfreq + self.startfreq) / 2, self.span / 8)
         Ql = Qi * Qc / (Qi + Qc)
-        S21_data = S21_notch(self.get_freqpoints(), fr, Ql, Qi) + np.random.normal(0., 0.01, self.nop)
+        S21_data = S21_notch(self.get_freqpoints(), fr, Ql, Qi) + np.random.normal(
+            0.0, 0.01, self.nop
+        )
 
         if not RealImag:
             amp = np.abs(S21_data)

@@ -1,16 +1,14 @@
 # Manual point picker
 # by M. Spiecker
 
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import ListedColormap
 
 
 class ManualPointPicker:
-
     def __init__(self, cmap_data=None, cmap_points=None):
-
         self.fig = None
         self.ax = None
         self.selection_artist = None
@@ -24,7 +22,7 @@ class ManualPointPicker:
             # point colors should be distinguishable from data colormap
             self.colors = 7
             self.cmap_points = np.empty((self.colors, 4))
-            self.cmap_points[0, :] = (0.0, 0.0, 0.0, 0.0)   # transparent
+            self.cmap_points[0, :] = (0.0, 0.0, 0.0, 0.0)  # transparent
             self.cmap_points[1, :] = (0.0, 0.8, 0.0, 1.0)  # g
             self.cmap_points[2, :] = (1.0, 1.0, 0.0, 1.0)  # y
             self.cmap_points[3, :] = (0.0, 1.0, 1.0, 1.0)  # cyan
@@ -44,14 +42,12 @@ class ManualPointPicker:
         self.data_selected = None
 
     def set_figure(self, fig, ax):
-
         self.fig = fig
         self.ax = ax
 
-        self.fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.fig.canvas.mpl_connect("key_press_event", self.on_key)
 
     def start_point_picker(self, x_vec, y_vec, data):
-
         self.x_vec = x_vec
         self.y_vec = y_vec
         self.data = data
@@ -61,8 +57,8 @@ class ManualPointPicker:
 
     def on_key(self, event):
         """
-            point with mouse on a data point and press one of the numbers 1-9
-            press "0" or "r" to remove data point from the list
+        point with mouse on a data point and press one of the numbers 1-9
+        press "0" or "r" to remove data point from the list
         """
 
         try:
@@ -82,7 +78,6 @@ class ManualPointPicker:
         self.refresh_artist()
 
     def get_data_list(self):
-
         n, m = self.data_selected.shape
 
         data = []
@@ -90,20 +85,26 @@ class ManualPointPicker:
         for i in range(n):
             for j in range(m):
                 if self.data_selected[i, j] != 0.0:
-                    data.append(np.array([self.x_vec[j], self.y_vec[i], self.data_selected[i, j]]))
+                    data.append(
+                        np.array(
+                            [self.x_vec[j], self.y_vec[i], self.data_selected[i, j]]
+                        )
+                    )
 
         return np.asarray(data)
 
     def refresh_artist(self):
-
         self.selection_artist.set_data(self.data_selected)
         self.fig.canvas.draw()
 
     def plot(self):
-
-        self.ax.imshow(self.data, cmap=self.cmap_data, origin='lower', aspect='auto')
-        self.selection_artist = self.ax.imshow(self.data_selected, cmap=self.cmap_points, vmin=0.0, vmax=self.colors - 1,
-                                               origin='lower', aspect='auto')
+        self.ax.imshow(self.data, cmap=self.cmap_data, origin="lower", aspect="auto")
+        self.selection_artist = self.ax.imshow(
+            self.data_selected,
+            cmap=self.cmap_points,
+            vmin=0.0,
+            vmax=self.colors - 1,
+            origin="lower",
+            aspect="auto",
+        )
         plt.show(block=True)
-
-

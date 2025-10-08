@@ -1,11 +1,12 @@
-import qkit
 import logging
+
+import qkit
 
 circle_fit_version = qkit.cfg.get("circle_fit_version", 1)
 
 if circle_fit_version == 1:
-    from .circle_fit_classic import calibration, circlefit, circuit, utilities
+    pass
 elif circle_fit_version == 2:
-    from .circle_fit_2019 import circuit
+    pass
 else:
     logging.warning("Circle fit version not properly set in configuration!")

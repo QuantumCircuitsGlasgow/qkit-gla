@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from functools import wraps
 import inspect
-from typing import Any, Callable, List
-from enum import Enum, unique, auto
+import logging
+from abc import ABC, abstractmethod
+from enum import Enum, auto, unique
+from typing import Any, Callable
+
 import numpy as np
 
 from qkit.core.instrument_base import Instrument
-from qkit.drivers.visa_prologix import instrument
-import logging
+
 
 class ModernInstrument(Instrument):
     """
@@ -17,19 +17,19 @@ class ModernInstrument(Instrument):
 
     Use @QkitProperty() to convert a getter to a property.
     Use @$prop_name$.setter to add a setter to a property.
-    Do note, that the function name of the getter and setter must be the same.  
+    Do note, that the function name of the getter and setter must be the same.
     """
-    FLAG_GET = 0x01             # Parameter is gettable
-    FLAG_SET = 0x02             # {arameter is settable
-    FLAG_GETSET = 0x03          # Shortcut for GET and SET
-    FLAG_GET_AFTER_SET = 0x04   # perform a 'get' after a 'set'
-    FLAG_SOFTGET = 0x08         # 'get' operation is simulated in software,
-                                # e.g. an internally stored value is returned.
-                                # Only use for parameters that cannot be read
-                                # back from a device.
+
+    FLAG_GET = 0x01  # Parameter is gettable
+    FLAG_SET = 0x02  # {arameter is settable
+    FLAG_GETSET = 0x03  # Shortcut for GET and SET
+    FLAG_GET_AFTER_SET = 0x04  # perform a 'get' after a 'set'
+    FLAG_SOFTGET = 0x08  # 'get' operation is simulated in software,
+    # e.g. an internally stored value is returned.
+    # Only use for parameters that cannot be read
+    # back from a device.
 
     class WrappedFunction:
-
         def __init__(self, func) -> None:
             self.func = func
 
@@ -37,7 +37,9 @@ class ModernInstrument(Instrument):
             return self.func(*args, **kwargs)
 
         @classmethod
-        def from_qkit_function(cls, target_object: Any, func: function) -> ModernInstrument.WrappedFunction:
+        def from_qkit_function(
+            cls, target_object: Any, func: function
+        ) -> ModernInstrument.WrappedFunction:
             return cls(lambda *args, **kwargs: func(target_object, *args, **kwargs))
 
     class WrappedProperty:
@@ -59,14 +61,16 @@ class ModernInstrument(Instrument):
             return {
                 "set_func": self._setter,
                 "get_func": self._getter,
-                "flags": Instrument.FLAG_GETSET
+                "flags": Instrument.FLAG_GETSET,
             }
 
         def get(self, query=True, **kwargs):
             """
             Returns the property value.
             """
-            return ModernInstrument._convert_value(self._getter(query=query, **kwargs), self._metadata.type)
+            return ModernInstrument._convert_value(
+                self._getter(query=query, **kwargs), self._metadata.type
+            )
 
         def set(self, value):
             """
@@ -81,12 +85,17 @@ class ModernInstrument(Instrument):
             return self._metadata
 
         @classmethod
-        def from_qkit_property(cls, target_object: Any, property: QkitProperty) -> ModernInstrument.WrappedProperty:
+        def from_qkit_property(
+            cls, target_object: Any, property: QkitProperty
+        ) -> ModernInstrument.WrappedProperty:
             """
             Converts a QKitProperty into a Wrapped Property to be handled in a ModernInstrument Instance.
             """
-            return cls(lambda **kwargs: property._get_logic(target_object, **kwargs), lambda val: property.__set__(target_object, val), property.metadata)
-
+            return cls(
+                lambda **kwargs: property._get_logic(target_object, **kwargs),
+                lambda val: property.__set__(target_object, val),
+                property.metadata,
+            )
 
     def __init__(self, name, **kwargs):
         self._name = name
@@ -120,11 +129,11 @@ class ModernInstrument(Instrument):
         return str(self.__module__)
 
     def _json(self):
-        '''
-        This function is called by the QkitJSONEncoder and should return a 
+        """
+        This function is called by the QkitJSONEncoder and should return a
         dictionary that will be saved to the JSON file.
-        '''
-        return {'dtype' : 'qkitInstrumentv2', 'content': str(self.get_name())}
+        """
+        return {"dtype": "qkitInstrumentv2", "content": str(self.get_name())}
 
     def get_options(self):
         """
@@ -159,8 +168,10 @@ class ModernInstrument(Instrument):
 
     def add_parameter(self, name, **kwargs):
         # FIXME: Reimplement via ObjectTreeVisitor
-        raise NotImplementedError("add_parameter no longer supported in ModernInstrument!")
-    
+        raise NotImplementedError(
+            "add_parameter no longer supported in ModernInstrument!"
+        )
+
     def _remove_parameters(self):
         self._parameters = {}
 
@@ -169,60 +180,59 @@ class ModernInstrument(Instrument):
             del self._parameters[name]
 
     def has_parameter(self, name):
-        return (name in self._parameters)
+        return name in self._parameters
 
     def get_parameter_options(self, name):
-        '''
+        """
         Return list of options for paramter.
 
         Input: name (string)
         Output: dictionary of options
-        '''
+        """
         if name in self._parameters:
             return self._parameters[name].build_options()
         else:
             return None
 
     def get_shared_parameter_options(self, name):
-        '''
+        """
         Return list of options for paramter.
 
         Input: name (string)
         Output: dictionary of options
-        '''
+        """
         if name in self._parameters:
             options = dict(self._parameters[name].build_options())
-            for i in ('get_func', 'set_func'):
+            for i in ("get_func", "set_func"):
                 if i in options:
                     del options[i]
-            if 'type' in options and options['type'] is type(None):
-                options['type'] = None
+            if "type" in options and options["type"] is type(None):
+                options["type"] = None
             return options
         else:
             return None
 
     def set_parameter_options(self, name, **kwargs):
-        '''
+        """
         Change parameter options.
 
         Input:  name of parameter (string)
         Ouput:  None
-        '''
+        """
         if name not in self._parameters:
-            logging.warn('Parameter %s not defined' % name)
+            logging.warn("Parameter %s not defined" % name)
             return None
 
         for key, val in kwargs.items():
             self._parameters[name][key] = val
 
-
     def get_parameter_tags(self, name):
-        '''
+        """
         Return tags for parameter 'name'.
 
         Input:  name of parameter (string)
         Ouput:  array of tags
-        '''
+        """
 
         if name not in self._parameters:
             return []
@@ -230,32 +240,32 @@ class ModernInstrument(Instrument):
         return self._parameters[name].metadata.tags
 
     def add_parameter_tag(self, name, tag):
-        '''
+        """
         Add tag to list of tags for parameter 'name'.
 
         Input:  (1) name of parameter (string)
                 (2) tag (string)
         Ouput:  None
-        '''
+        """
 
         if name not in self._parameters:
             return
 
-        self._parameters[name]['tags'].append(tag)
+        self._parameters[name]["tags"].append(tag)
 
     def set_parameter_bounds(self, name, minval, maxval):
-        '''
+        """
         Change the bounds for a parameter.
 
         Input:  (1) name of parameter (string)
                 (2) minimum value
                 (3) maximum value
         Output: None
-        '''
+        """
         self.set_parameter_options(name, minval=minval, maxval=maxval)
 
     def set_channel_bounds(self, name, channel, minval, maxval):
-        '''
+        """
         Change the bounds for a channel.
 
         Input:  (1) name of parameter (string)
@@ -263,18 +273,18 @@ class ModernInstrument(Instrument):
                 (3) minimum value
                 (4) maximum value
         Output: None
-        '''
+        """
 
         opts = self.get_parameter_options(name)
-        if 'channel_prefix' in opts:
-            var_name = opts['channel_prefix'] % channel + name
+        if "channel_prefix" in opts:
+            var_name = opts["channel_prefix"] % channel + name
         else:
-            var_name = '%s%d' % (name, channel)
+            var_name = "%s%d" % (name, channel)
 
         self.set_parameter_options(var_name, minval=minval, maxval=maxval)
 
     def set_parameter_rate(self, name, stepsize, stepdelay):
-        '''
+        """
         Change the rate properties for a channel.
 
         Input:
@@ -282,34 +292,34 @@ class ModernInstrument(Instrument):
             stepdelay (float): the delay after each step
         Output:
             None
-        '''
+        """
         self.set_parameter_options(name, maxstep=stepsize, stepdelay=stepdelay)
 
     def get_parameter_names(self):
-        '''
+        """
         Returns a list of parameter names.
 
         Input: None
         Output: all the paramter names (list of strings)
-        '''
+        """
         return self._parameters.keys()
 
     def get_parameters(self):
-        '''
+        """
         Return the parameter dictionary.
 
         Input: None
         Ouput: Dictionary, keys are parameter names, values are the options.
-        '''
+        """
         return self._parameters
 
     def get_shared_parameters(self):
-        '''
+        """
         Return the parameter dictionary, with non-shareable items stripped.
 
         Input: None
         Ouput: Dictionary, keys are parameter names, values are the options.
-        '''
+        """
 
         params = {}
         for key in self._parameters:
@@ -317,38 +327,37 @@ class ModernInstrument(Instrument):
         return params
 
     def get_parameter_groups(self):
-        '''
+        """
         Return a dictionary with parameter group name -> group members.
-        '''
+        """
         return self._parameter_groups
 
     _CONVERT_MAP = {
-            int: int,
-            float: float,
-            bytes: str,
-            str: str,
-            bool: bool,
-            tuple: tuple,
-            list: list,
-            np.ndarray: lambda x: x.tolist(),
-            np.int64: int,
-            np.float64: float
+        int: int,
+        float: float,
+        bytes: str,
+        str: str,
+        bool: bool,
+        tuple: tuple,
+        list: list,
+        np.ndarray: lambda x: x.tolist(),
+        np.int64: int,
+        np.float64: float,
     }
 
     @staticmethod
     def _convert_value(value, ttype):
-        if type(value) is bool and \
-                ttype is not bool:
-            raise ValueError('Setting a boolean, but that is not the expected type')
+        if type(value) is bool and ttype is not bool:
+            raise ValueError("Setting a boolean, but that is not the expected type")
 
         if ttype not in ModernInstrument._CONVERT_MAP:
-            raise ValueError('Unsupported type %s', ttype)
+            raise ValueError("Unsupported type %s", ttype)
 
         try:
             func = ModernInstrument._CONVERT_MAP[ttype]
             value = func(value)
         except:
-            raise ValueError('Conversion of %r to type %s failed',value, ttype)
+            raise ValueError("Conversion of %r to type %s failed", value, ttype)
 
         return value
 
@@ -358,19 +367,22 @@ class ModernInstrument(Instrument):
         except (AttributeError, TypeError, NameError, ValueError) as e:
             logging.error(f"Caught error while processing {name}(query={query}): e")
             raise e
-    
+
     def set(self, name, value, **kwargs):
         return self._parameters[name].set(value, **kwargs)
 
     def call(self, name, *args, **kwargs):
         return self._functions[name].call(*args, **kwargs)
 
+
 def interval_check(lower, upper):
     """
     Return a callable which returns true if its argument lies between the provided lower and upper bound.
     """
+
     def checker(arg):
         return lower <= arg <= upper
+
     checker.lower = lower
     checker.upper = upper
     return checker
@@ -383,18 +395,22 @@ def QkitFunction(func):
     func._qkit_function = True
     return func
 
+
 @unique
 class CachePolicy(Enum):
     SOFT_GET = auto()
     ALWAYS_REFRESH = auto()
-    NONE = auto() # Default value
+    NONE = auto()  # Default value
 
-def caching(cache_policy: CachePolicy, get_after_set = False):
+
+def caching(cache_policy: CachePolicy, get_after_set=False):
     def decorator(func):
         assert isinstance(func, QkitProperty)
         func.set_caching(cache_policy, get_after_set)
         return func
+
     return decorator
+
 
 class QkitProperty:
     """
@@ -444,30 +460,36 @@ class QkitProperty:
         We ignore all further kwargs, as they may result in incompatibilities.
         """
         if obj is None:
-            return 
-        
+            return
+
         # We need to determine if we hit the cache or call the actual device.
-        hit_cache = False # Per default we can not assume that caching is a good idea. Let's be pessimistic.
-        if not query and not self.cache_policy == CachePolicy.ALWAYS_REFRESH: # Automated QKit-Get call. Hit cache if we are not force to always refresh.
+        hit_cache = False  # Per default we can not assume that caching is a good idea. Let's be pessimistic.
+        if (
+            not query and not self.cache_policy == CachePolicy.ALWAYS_REFRESH
+        ):  # Automated QKit-Get call. Hit cache if we are not force to always refresh.
             hit_cache = True
-        elif query and self.cache_policy == CachePolicy.SOFT_GET: # We have no getter. Always go to cache
+        elif (
+            query and self.cache_policy == CachePolicy.SOFT_GET
+        ):  # We have no getter. Always go to cache
             hit_cache = True
         else:
             hit_cache = False
 
         if hit_cache:
             return self._qkit_cache(obj).last_value
-        else: # Default query. Call getter.
+        else:  # Default query. Call getter.
             new_value = self.fget(obj)
             self._qkit_cache(obj).last_value = new_value
             return new_value
 
     def setter(self, fset):
         """
-        Decorator to create the 
+        Decorator to create the
         """
         sig = inspect.signature(fset)
-        assert len(sig.parameters) == 2, "Missing parameters in setter, expected (self, arg) or similar!"
+        assert (
+            len(sig.parameters) == 2
+        ), "Missing parameters in setter, expected (self, arg) or similar!"
         self.fset = fset
         return self
 
@@ -478,9 +500,11 @@ class QkitProperty:
         if self.fset is None:
             raise AttributeError("Can't set attribute!")
         if inspect.isfunction(value):
-            raise ValueError("Likely bug detected: Attempting to set a QkitProperty to a function!")
+            raise ValueError(
+                "Likely bug detected: Attempting to set a QkitProperty to a function!"
+            )
         assert self.metadata.check_arg(value), "Argument validity check failed!"
-        
+
         retval = self.fset(obj, value)
         # Update cache either with value or __get__
         if self.get_after_set:
@@ -489,12 +513,10 @@ class QkitProperty:
             self._qkit_cache(obj).last_value = value
 
         return retval
-        
 
     def set_cache_policy(self, cache_policy: CachePolicy, get_after_set: bool):
         self.cache_policy = cache_policy
         self.get_after_set = get_after_set
-
 
     def _qkit_cache(self, obj) -> ValueCache:
         """
@@ -506,7 +528,7 @@ class QkitProperty:
             setattr(obj, QkitProperty.QKIT_CACHE_NAME, {})
         cache: dict = getattr(obj, QkitProperty.QKIT_CACHE_NAME)
         name = self.metadata.name
-        if not name in cache:
+        if name not in cache:
             cache[name] = QkitProperty.ValueCache()
         return cache[name]
 
@@ -526,7 +548,7 @@ class QkitProperty:
     def get_metadata(obj, property_name: str) -> PropertyMetadata:
         """
         If the key is a QkitProperty of obj return its Metadata.
-        Otherwise return None. 
+        Otherwise return None.
         """
         try:
             candidate = type(obj).__dict__[property_name]
@@ -536,10 +558,12 @@ class QkitProperty:
             return candidate.metadata
         return None
 
+
 class ObjectTreeVisistor(ABC):
     """
-    A visitor visiting class members to register them as properties and functions of 
+    A visitor visiting class members to register them as properties and functions of
     """
+
     def __init__(self, instrument: ModernInstrument) -> None:
         self.instrument = instrument
 
@@ -551,23 +575,32 @@ class ObjectTreeVisistor(ABC):
         If some property is inteded to be used as a property, call [visit_property]
         If some array or iterable and indexable structure is channel-like, call [visit_channel]
         """
-        pass
-    
-    def get_property_metadata(self, obj: Any, name: str, prop: property) -> PropertyMetadata:
+
+    def get_property_metadata(
+        self, obj: Any, name: str, prop: property
+    ) -> PropertyMetadata:
         """
         Provides an instance of [PropertyMetadata] for a discovered property if we were
         not able to automatically derive it from [@QkitProperty].
         """
         raise NotImplementedError("Unimplemented 'get_property_metadata'!")
 
-    def wrap_property(self, obj: Any, name: str, prop: property) -> ModernInstrument.WrappedProperty:
-        raise TypeError(f"Unsupported property type '{type(prop)}! Override 'wrap_property' missing!'")
+    def wrap_property(
+        self, obj: Any, name: str, prop: property
+    ) -> ModernInstrument.WrappedProperty:
+        raise TypeError(
+            f"Unsupported property type '{type(prop)}! Override 'wrap_property' missing!'"
+        )
 
-    def wrap_function(self, obj: Any, name: str, func: Callable) -> ModernInstrument.WrappedFunction:
-        raise TypeError(f"Unsupported property type '{type(func)}'! Override 'wrap_function' missing!")
+    def wrap_function(
+        self, obj: Any, name: str, func: Callable
+    ) -> ModernInstrument.WrappedFunction:
+        raise TypeError(
+            f"Unsupported property type '{type(func)}'! Override 'wrap_function' missing!"
+        )
 
     @staticmethod
-    def derive_name_from_path(path: List(str)) -> str:
+    def derive_name_from_path(path: list(str)) -> str:
         return "_".join(map(lambda it: str(it), path))
 
     def visit_property(self, obj, name, prop, path=[]):
@@ -582,7 +615,7 @@ class ObjectTreeVisistor(ABC):
             wrapped = ModernInstrument.WrappedProperty(
                 getter=lambda: property.__get__(obj),
                 setter=lambda value: property.__set__(obj, value),
-                metadata=self.get_property_metadata(obj, name, prop)
+                metadata=self.get_property_metadata(obj, name, prop),
             )
         else:
             wrapped = self.wrap_property(obj, name, prop)
@@ -604,6 +637,7 @@ class ObjectTreeVisistor(ABC):
         else:
             wrapped = self.wrap_function(obj, name, func)
         self.instrument._functions[property_name] = wrapped
+
 
 class QkitNativeVisitor(ObjectTreeVisistor):
     """
@@ -637,7 +671,8 @@ class QkitNativeVisitor(ObjectTreeVisistor):
             if hasattr(prop, "__len__") and hasattr(prop, "__getitem__"):
                 # This is a list, which might be channel-like
                 for i in range(len(prop)):
-                    self.visit_instance(prop[i], path = path + [candidate, str(i)])
+                    self.visit_instance(prop[i], path=path + [candidate, str(i)])
+
 
 class PropertyMetadata:
     """
@@ -645,13 +680,15 @@ class PropertyMetadata:
     to create wrapped properties for [ModernInstrument]
     """
 
-    def __init__(self, type=None, arg_checker=None, tags=[], subscribe=[], units=None, group=None) -> None:
+    def __init__(
+        self, type=None, arg_checker=None, tags=[], subscribe=[], units=None, group=None
+    ) -> None:
         """
         Optional Arguments:
         type: float, int, str, np.ndarray, ...
         arg_checker: Checks argument for validity (minimum, maximum, steps) and returns either True (valid) or False
         tags: Tags associated with the parameter
-        subscribe: A set of parameter names whose change triggers an update of this one 
+        subscribe: A set of parameter names whose change triggers an update of this one
         units: A string describing this properties units
         group: A string name of a group this property belongs to.
         """
@@ -672,8 +709,14 @@ class PropertyMetadata:
 
     def __repr__(self) -> str:
         import textwrap
-        return textwrap.dedent(f"""
+
+        return (
+            textwrap.dedent(
+                f"""
         Property {self.name}({self.type} {self.units}): tagged {self.tags} in group {self.group}
         listens to {self.subsriptions}
         argument checked: {not self.arg_checker == None}
-        Documentation: """) + textwrap.dedent(self.documentation)
+        Documentation: """
+            )
+            + textwrap.dedent(self.documentation)
+        )

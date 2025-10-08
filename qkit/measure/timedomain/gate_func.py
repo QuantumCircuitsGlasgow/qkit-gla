@@ -32,11 +32,12 @@ usage and inputs:
 
 import logging
 import time
+
 import qkit
 
-class Gate_Func(object):
 
-    def __init__(self, awg, pulser = None, ni_daq = None, ni_daq_ch = 'PFI0:0', sample=None):
+class Gate_Func:
+    def __init__(self, awg, pulser=None, ni_daq=None, ni_daq_ch="PFI0:0", sample=None):
         """
         initialize gate function
         inputs:
@@ -63,25 +64,43 @@ class Gate_Func(object):
             self._gate_low = lambda: self.ni_daq.digital_out(self.ni_daq_ch, 0)
         else:
             self.ni_daq = None
-       
-        self.selftriggered = (self.pulser == None and self.ni_daq == None)
-        
+
+        self.selftriggered = self.pulser == None and self.ni_daq == None
+
         if self.selftriggered:
             if "Tabor" in self.awg.get_type():
-                if(self.awg._numchannels == 4):
-                    self._gate_low = lambda: self.awg.set({'p1_trigger_time':2,'p2_trigger_time':2})
-                    self._gate_high = lambda: self.awg.set({'p1_trigger_time':self._sample.T_rep,'p2_trigger_time':self._sample.T_rep})
+                if self.awg._numchannels == 4:
+                    self._gate_low = lambda: self.awg.set(
+                        {"p1_trigger_time": 2, "p2_trigger_time": 2}
+                    )
+                    self._gate_high = lambda: self.awg.set(
+                        {
+                            "p1_trigger_time": self._sample.T_rep,
+                            "p2_trigger_time": self._sample.T_rep,
+                        }
+                    )
                 else:
-                    self._gate_low = lambda: self.awg.set({'trigger_time':2})
-                    self._gate_high = lambda: self.awg.set({'trigger_time':self._sample.T_rep})
+                    self._gate_low = lambda: self.awg.set({"trigger_time": 2})
+                    self._gate_high = lambda: self.awg.set(
+                        {"trigger_time": self._sample.T_rep}
+                    )
             else:
-                self._gate_low  =  lambda: self.awg.set({'trigger_time':2, 'p1_trigger_time':2})
-                self._gate_high = lambda: self.awg.set({'trigger_time':self._sample.T_rep, 'p1_trigger_time':self._sample.T_rep})
-        
-        if self.selftriggered and not ('Tabor' in self.awg.get_type()):
-            raise ValueError("selftriggered mode (without pulser and nidaq) is currently only available for Tabor AWGs.")
+                self._gate_low = lambda: self.awg.set(
+                    {"trigger_time": 2, "p1_trigger_time": 2}
+                )
+                self._gate_high = lambda: self.awg.set(
+                    {
+                        "trigger_time": self._sample.T_rep,
+                        "p1_trigger_time": self._sample.T_rep,
+                    }
+                )
+
+        if self.selftriggered and "Tabor" not in self.awg.get_type():
+            raise ValueError(
+                "selftriggered mode (without pulser and nidaq) is currently only available for Tabor AWGs."
+            )
         self.ni_daq_ch = ni_daq_ch
-        
+
     def gate_fcn(self, state):
         """
         gate function
@@ -90,23 +109,23 @@ class Gate_Func(object):
         outputs:
          -
         """
-        if state:   #switch gate to high, let the pulses run
+        if state:  # switch gate to high, let the pulses run
             time.sleep(0.1)
             self._gate_high()
-                
-        else:   #reset AWG and wait for it
+
+        else:  # reset AWG and wait for it
             self._gate_low()
-            
+
             time.sleep(0.025)
-            
-            if 'Tektronix' in self.awg.get_type():
+
+            if "Tektronix" in self.awg.get_type():
                 self._reset_tek()
-            elif 'Tabor' in self.awg.get_type():
+            elif "Tabor" in self.awg.get_type():
                 self._reset_tabor()
             else:
-                logging.error('AWG unknown')
+                logging.error("AWG unknown")
                 raise ImportError
-            
+
     def _reset_tek(self):
         """
         reset Tektronix AWG to first sequence
@@ -114,29 +133,32 @@ class Gate_Func(object):
         tries = 0
         while self.awg.get_seq_position() != 1:
             if tries > 30:
-                logging.error('Tektronix AWG does not respond. Aborting.')
-                raise ValueError('AWG did not reset to first waveform after %i iterations. There is something seriously going wrong. Check if AWG can enter run mode!'%tries)
+                logging.error("Tektronix AWG does not respond. Aborting.")
+                raise ValueError(
+                    "AWG did not reset to first waveform after %i iterations. There is something seriously going wrong. Check if AWG can enter run mode!"
+                    % tries
+                )
             tries += 1
             self.awg.stop()
             self.awg.wait()
             self.awg.run()
-            #self.awg.wait()
+            # self.awg.wait()
             time.sleep(0.025)
 
         if tries > 4:
-            print('Tektronix AWG reached first waveform after %d iterations.'%tries)
-                
+            print("Tektronix AWG reached first waveform after %d iterations." % tries)
+
     def _reset_tabor(self):
         """
         reset Tabor AWG to first sequence
         """
         # workaround to intialize to first waveform and make the AWG ready
         if "p1_runmode" in self.awg.get_parameter_names():
-            self.awg.set_p1_runmode('USER')
-            self.awg.set_p2_runmode('USER')
-            self.awg.set_p1_runmode('SEQ')
-            self.awg.set_p2_runmode('SEQ')
+            self.awg.set_p1_runmode("USER")
+            self.awg.set_p2_runmode("USER")
+            self.awg.set_p1_runmode("SEQ")
+            self.awg.set_p2_runmode("SEQ")
         else:
-            self.awg.set_runmode('USER')
-            self.awg.set_runmode('SEQ')
+            self.awg.set_runmode("USER")
+            self.awg.set_runmode("SEQ")
         self.awg.fix(verbose=False)

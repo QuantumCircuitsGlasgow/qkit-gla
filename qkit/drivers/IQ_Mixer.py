@@ -1,16 +1,21 @@
 # Toolset for calibrating and using IQ-Mixers as Single-Sideband-Mixers (SSB)
 # Started by Andre Schneider 01/2015 <andre.schneider@student.kit.edu>
 
-import qkit
-from qkit.core.instrument_base import Instrument
-import time
-import types
 import logging
 import os
+import time
+import types
+
 import numpy as np
+
+import qkit
+from qkit.core.instrument_base import Instrument
+
 if qkit.module_available("matplotlib"):
     import matplotlib.pyplot as plt
-import sys, gc
+
+import gc
+import sys
 from copy import copy
 
 
@@ -354,8 +359,8 @@ class IQ_Mixer(Instrument):
                 __name__ + ' : Switch was not switched. Define switchbox instrument via iq.connect_switchbox(swb). If you do not have a switchbox, make sure your cables are connected and go on.')
         self._sample.awg.set_clock(self._sample.clock)
         if not self._FSUP_connected:
-            raise ValueError((
-                                 'FSUP is possibly not connected. \nIncrease trust_region and maxage to interpolate values or connect FSUP and execute connect_FSUP(fsup)'))
+            raise ValueError(
+                                 'FSUP is possibly not connected. \nIncrease trust_region and maxage to interpolate values or connect FSUP and execute connect_FSUP(fsup)')
         qkit.flow.start()
         (hx_amp, hx_phase, hy_amp, hy_phase) = (0, 0, 0, 0)
         if self._iq_frequency == 0: logging.warning(
@@ -483,8 +488,8 @@ class IQ_Mixer(Instrument):
 
     def initial_calibrate(self):
         if not self._FSUP_connected:
-            raise ValueError((
-                                 'FSUP is possibly not connected. \nIncrease trust_region and maxage to interpolate values or connect FSUP and execute connect_FSUP(fsup)'))
+            raise ValueError(
+                                 'FSUP is possibly not connected. \nIncrease trust_region and maxage to interpolate values or connect FSUP and execute connect_FSUP(fsup)')
 
         if self._swb is not None:  # switching to fsup
             self._swb.set_position('2')
