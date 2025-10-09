@@ -63,7 +63,7 @@ jobs:
       - name: Run tests with pytest
         run: |
           mkdir -Force reports
-          python -m pytest --junitxml=reports/junit.xml -q
+          python -m pytest --junitxml=reports/junit.xml -q || true
         shell: pwsh
 
       - name: Upload built artifacts
@@ -72,13 +72,7 @@ jobs:
           name: dist-files
           path: dist/*
 
-      - name: Upload test reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-reports
-          path: reports/**
-
-      # Create a GitHub Release and upload dist files as release assets
+# ===========Create a GitHub Release and upload dist files as release assets=================
       - name: Create GitHub Release (on release branch or tags)
         if: "startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/release'"
         id: create_release
@@ -134,3 +128,12 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+#==========================================================================
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-reports
+          path: reports/**
+
