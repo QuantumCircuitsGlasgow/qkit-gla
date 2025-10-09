@@ -79,32 +79,55 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Automated release ${{ github.ref_name }}
+          release_name: Automated ${{ github.ref_name }}
           body: |
-            Automated release created by CI for ref `${{ github.ref }}`.
+            Automated release created by CI for ref `${{ github.ref }}` from tagged commit `${{ github.sha }}`.
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload wheel to GitHub Release (if release created)
-        if: steps.create_release.outputs.upload_url != ''
+      # Locate built artifacts and export their absolute paths for the upload steps
+      - name: Locate built artifacts
+        id: find_artifacts
+        shell: pwsh
+        run: |
+          Write-Host "Looking for built artifacts in dist/"
+          $wheel = Get-ChildItem -Path dist -Filter *.whl -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $wheel) {
+            Write-Host "Found wheel: $($wheel.FullName)"
+            Add-Content -Path $env:GITHUB_ENV -Value "WHEEL_PATH=$($wheel.FullName)"
+            Add-Content -Path $env:GITHUB_ENV -Value "WHEEL_NAME=$($wheel.Name)"
+          } else {
+            Write-Host "No wheel found in dist/"
+          }
+          $sdist = Get-ChildItem -Path dist -Filter *.tar.gz -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $sdist) {
+            Write-Host "Found sdist: $($sdist.FullName)"
+            Add-Content -Path $env:GITHUB_ENV -Value "SDIST_PATH=$($sdist.FullName)"
+            Add-Content -Path $env:GITHUB_ENV -Value "SDIST_NAME=$($sdist.Name)"
+          } else {
+            Write-Host "No sdist found in dist/"
+          }
+
+      - name: Upload wheel to GitHub Release (if release created and wheel exists)
+        if: steps.create_release.outputs.upload_url != '' && env.WHEEL_PATH != ''
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/*.whl
-          asset_name: ${{ github.repository }}-${{ github.sha }}.whl
+          asset_path: ${{ env.WHEEL_PATH }}
+          asset_name: ${{ env.WHEEL_NAME }}
           asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload sdist to GitHub Release (if release created)
-        if: steps.create_release.outputs.upload_url != ''
+      - name: Upload sdist to GitHub Release (if release created and sdist exists)
+        if: steps.create_release.outputs.upload_url != '' && env.SDIST_PATH != ''
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/*.tar.gz
-          asset_name: ${{ github.repository }}-${{ github.sha }}.tar.gz
+          asset_path: ${{ env.SDIST_PATH }}
+          asset_name: ${{ env.SDIST_NAME }}
           asset_content_type: application/gzip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -114,7 +137,7 @@ jobs:
         if: "github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release'"
         run: |
           python -m pip install --upgrade twine
-          python -m twine upload --repository testpypi dist/*
+                python -m twine upload --repository testpypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
@@ -124,7 +147,7 @@ jobs:
         if: false
         run: |
           # python -m pip install --upgrade twine
-          # python -m twine upload dist/*
+          # python -m twine upload --repository testpypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
