@@ -52,7 +52,7 @@ jobs:
         run: |
           # Ensure pre-commit is installed and run hooks against the checked-out branch
           python -m pre_commit install --config .pre-commit-config.yaml || true
-          # python -m pre_commit run --all-files --config .pre-commit-config.yaml
+          python -m pre_commit run --all-files --config .pre-commit-config.yaml || true
         shell: pwsh
 
       - name: Build package
@@ -77,3 +77,60 @@ jobs:
         with:
           name: pytest-reports
           path: reports/**
+
+      # Create a GitHub Release and upload dist files as release assets
+      - name: Create GitHub Release (on release branch or tags)
+        if: "startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/release'"
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Automated release ${{ github.ref_name }}
+          body: |
+            Automated release created by CI for ref `${{ github.ref }}`.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload wheel to GitHub Release (if release created)
+        if: steps.create_release.outputs.upload_url != ''
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: ${{ github.repository }}-${{ github.sha }}.whl
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload sdist to GitHub Release (if release created)
+        if: steps.create_release.outputs.upload_url != ''
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*.tar.gz
+          asset_name: ${{ github.repository }}-${{ github.sha }}.tar.gz
+          asset_content_type: application/gzip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Publish to TestPyPI (only on main or release branch)
+      - name: Publish to TestPyPI
+        if: "github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release'"
+        run: |
+          python -m pip install --upgrade twine
+          python -m twine upload --repository testpypi dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+      # Real PyPI publishing (commented out). Uncomment & configure secrets to enable.
+      - name: Publish to PyPI (REAL)  # COMMENTED OUT - DO NOT ENABLE UNLESS READY
+        if: false
+        run: |
+          # python -m pip install --upgrade twine
+          # python -m twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
