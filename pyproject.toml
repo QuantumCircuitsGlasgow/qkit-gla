@@ -47,7 +47,7 @@ dependencies = [
     "jupyterlab-templates==0.4.0",
     "ipywidgets==8.0.6",
     "matplotlib==3.7.1",
-    "uncertainties==3.1.7"pyth
+    "uncertainties==3.1.7",
 ]
 
 [project.optional-dependencies]
