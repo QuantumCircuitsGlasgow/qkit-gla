@@ -1,4 +1,4 @@
-# FIXME: ** dummy ** file 
+# FIXME: ** dummy ** file
 
 name: Windows Build, Pre-commit and Test
 
@@ -9,7 +9,7 @@ on:
       # - release
     # Also trigger on tag pushes that start with 'v' (e.g. v1.2.3)
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch: {}
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Upgrade pip and install tooling
         run: |
@@ -60,7 +60,7 @@ jobs:
 
       - name: Build package with version and build tag
         run: |
-              python -m build --sdist --wheel --outdir dist 
+          python -m build --sdist --wheel --outdir dist
 
       - name: Run tests with pytest
         run: |
@@ -74,7 +74,7 @@ jobs:
           name: dist-files
           path: dist/*
 
-# ===========Create a GitHub Release and upload dist files as release assets=================
+      # ===========Create a GitHub Release and upload dist files as release assets=================
       - name: Create GitHub Release (on tag push)
         # Only create a release when the workflow was triggered by a tag push
         if: "startsWith(github.ref, 'refs/tags/')"
@@ -138,28 +138,27 @@ jobs:
       # Publish to TestPyPI (only on main or release branch)
       - name: Publish to TestPyPI
         if: "github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release'"
-        run: |
+        run: 
           python -m pip install --upgrade twine
-                python -m twine upload --repository testpypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
+          python -m twine upload --repository testpypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
       # Real PyPI publishing (commented out). Uncomment & configure secrets to enable.
-      - name: Publish to PyPI (REAL)  # COMMENTED OUT - DO NOT ENABLE UNLESS READY
+      - name: Publish to PyPI (REAL) # COMMENTED OUT - DO NOT ENABLE UNLESS READY
         if: false
-        run: |
-           python -m pip install --upgrade twine
-           python -m twine upload --repository pypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
+        run: 
+          python -m pip install --upgrade twine
+          python -m twine upload --repository pypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
 
-#==========================================================================
+      #==========================================================================
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4
         with:
           name: pytest-reports
           path: reports/**
-
