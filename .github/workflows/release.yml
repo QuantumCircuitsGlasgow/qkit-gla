@@ -7,6 +7,9 @@ on:
     branches:
       - main
       - release
+    # Also trigger on tag pushes that start with 'v' (e.g. v1.2.3)
+    tags:
+      - 'v*'
   workflow_dispatch: {}
 
 jobs:
@@ -73,8 +76,9 @@ jobs:
           path: dist/*
 
 # ===========Create a GitHub Release and upload dist files as release assets=================
-      - name: Create GitHub Release (on release branch or tags)
-        if: "startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/release'"
+      - name: Create GitHub Release (on tag push)
+        # Only create a release when the workflow was triggered by a tag push
+        if: "startsWith(github.ref, 'refs/tags/')"
         id: create_release
         uses: actions/create-release@v1
         with:
