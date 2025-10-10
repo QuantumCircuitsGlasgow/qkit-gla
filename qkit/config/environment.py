@@ -27,11 +27,55 @@ cfg = {}
 # set up default path for
 cfg["qkitdir"] = os.path.split(qkit.__file__)[0]
 cfg["coredir"] = os.path.join(cfg["qkitdir"], "core")
-cfg["logdir"] = os.path.join(cfg["qkitdir"], "logs")
+
+# For pip installations, use user-writable directories
+# Try to use a user-writable location for logs and data
+try:
+    # Try to use the logs directory in the package if writable (development mode)
+    package_logdir = os.path.join(cfg["qkitdir"], "logs")
+    if os.path.exists(package_logdir):
+        # Test if we can write to it
+        test_file = os.path.join(package_logdir, "test_write.tmp")
+        try:
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+            cfg["logdir"] = package_logdir
+        except (OSError, PermissionError):
+            # Fall back to user directory
+            cfg["logdir"] = os.path.join(os.path.expanduser("~"), ".qkit", "logs")
+    else:
+        # Package logs directory doesn't exist, use user directory
+        cfg["logdir"] = os.path.join(os.path.expanduser("~"), ".qkit", "logs")
+except Exception:
+    # Ultimate fallback to temp directory
+    cfg["logdir"] = os.path.join(tempfile.gettempdir(), "qkit_logs")
+
 cfg["execdir"] = cfg["qkitdir"]
 cfg["rootdir"] = cfg["qkitdir"]
 cfg["tempdir"] = tempfile.gettempdir()
-cfg["datadir"] = os.path.join(cfg["qkitdir"], "data")
+
+# Similar approach for data directory
+try:
+    package_datadir = os.path.join(cfg["qkitdir"], "data")
+    if os.path.exists(package_datadir):
+        # Test if we can write to it
+        try:
+            os.makedirs(package_datadir, exist_ok=True)
+            test_file = os.path.join(package_datadir, "test_write.tmp")
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+            cfg["datadir"] = package_datadir
+        except (OSError, PermissionError):
+            # Fall back to user directory
+            cfg["datadir"] = os.path.join(os.path.expanduser("~"), ".qkit", "data")
+    else:
+        # Package data directory doesn't exist, use user directory
+        cfg["datadir"] = os.path.join(os.path.expanduser("~"), ".qkit", "data")
+except Exception:
+    # Ultimate fallback to temp directory
+    cfg["datadir"] = os.path.join(tempfile.gettempdir(), "qkit_data")
 
 cfg["instruments_dir"] = os.path.join(cfg["qkitdir"], "drivers")
 cfg["user_instruments_dir"] = None

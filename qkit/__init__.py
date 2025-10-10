@@ -92,6 +92,35 @@ del cfg_local
 print("QKIT configuration initialized -> available as qkit.cfg[...]")
 
 """
+Initialize module availability checker early so it's available for imports
+"""
+from pkgutil import find_loader
+
+class ModuleAvailabilityChecker:
+    """Checks for available modules and provides module availability information."""
+    
+    def __init__(self):
+        self.available_modules = {}
+
+    def module_available(self, module_name):
+        """Check if a module is available for import."""
+        if module_name not in self.available_modules:
+            self.available_modules[module_name] = bool(find_loader(module_name))
+        return self.available_modules[module_name]
+
+    def __call__(self, module_name):
+        return self.module_available(module_name)
+
+    def __getitem__(self, module_name):
+        return self.module_available(module_name)
+
+    def __str__(self):
+        return str(self.available_modules)
+
+# Make module_available available immediately
+module_available = ModuleAvailabilityChecker()
+
+"""
 startup functions
 """
 
