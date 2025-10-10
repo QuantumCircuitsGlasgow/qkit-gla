@@ -58,10 +58,11 @@ jobs:
           python -m pre_commit run --all-files --config .pre-commit-config.yaml || true
         shell: pwsh
 
-      - name: Build package
+      - name: Build package with version and build tag
         run: |
-          python -m build
+              python -m build --sdist --wheel --outdir dist --tag ${{ github.ref_name }}
         shell: pwsh
+
 
       - name: Run tests with pytest
         run: |

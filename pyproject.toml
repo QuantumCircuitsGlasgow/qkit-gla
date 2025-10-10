@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qkit"
-version = "0.0.1alpha"
+version = "0.0.1beta"
 description = "A quantum measurement toolkit for superconducting qubits and resonators"
 readme = "README.md"
 license = {file = "LICENSE"}
