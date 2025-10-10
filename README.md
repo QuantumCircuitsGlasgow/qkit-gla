@@ -1,9 +1,22 @@
 <p align="center">
-  <img src="./images/Qkit_Logo.png" alt="QKIT" width="300">
+  <img src="./images/qkit_b.png" alt="QKIT" width="300">
 </p>
 
 
-# Qkit - a quantum measurement suite in python
+
+
+# Qkit-gla :  a quantum measurement suite in python
+![Static Badge](https://img.shields.io/badge/QKIT-GLA-2ad0db?style=flat-square&logoSize=10)
+
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FQuantumCircuitsGlasgow%2Fqkit-gla%2Frefs%2Fheads%2Frelease%2Fpyproject.toml&style=plastic)
+![Build](https://github.com/QuantumCircuitsGlasgow/qkit-gla/actions/workflows/release.yml/badge.svg)
+
+[![PyPI version](https://img.shields.io/pypi/v/qkit-gla.svg)](https://pypi.org/project/qkit-gla/)
+[![TestPyPI version](https://img.shields.io/badge/dynamic/json?url=https://test.pypi.org/pypi/qkit/json&query=$.info.version&label=TestPyPI)](https://test.pypi.org/project/qkit/)
+
+
+
+*Note: this is a adaptation measurement suite based on the KIT suite of the same name for [Quantum Circuits Glasgow](https://www.gla.ac.uk/research/az/quantumcircuitslab/)*
 
 ## Features:
   * a collection of ipython notebooks for measurement and data analysis tasks.
@@ -14,11 +27,13 @@
 ### Platform:
   The qkit framework has been tested under windows and with limits under macos x and linux. 
   The gui requires h5py, qt and pyqtgraph, which work fine on these platforms. 
-  The core of the framework should run with python 2.7.x/3.4+
+  The core of the framework runs on __Python 3.9+__
  
 ## Requirements:
-This project uses python. An up to date installation of python is expected to be present.
-The requirements are listed in the `requirements.txt` file. They can be installed automatically using
+This project uses python 3.9+. An up to date installation of python is expected to be present.
+The requirements are listed in the `requirements.txt` file. 
+
+They can be installed automatically using
 ```bash
 pip install -r requirements.txt
 ```
@@ -34,37 +49,47 @@ pip install -r requirements.txt
 | [zhinst](https://pypi.org/project/zhinst/) | Drivers for Zurich Instruments devices |
 | [zeromq](https://pypi.org/project/pyzmq/) | Messaging |  
 
-## Upgrading:
-If you use an existing installation of qkit, where the Jupyter Notebooks are not located in `./notebooks`, then you will need to change one line in `jupyter_lab_config.py`:
-
-```python 
-# Set Notebook directory
-notebook_dir = 'notebooks' # Change this line
-```
-On Windows, this might be set to:
-```python 
-# Set Notebook directory
-notebook_dir = r'C:\notebooks' # Change this line
-```
+### Pre-requisites:
+for __Windows__  : Install some version of `conda`. Miniconda3 or Anaconda would do.
 
 ## Installation:
+It is recommended to install in a `virtual-env` or `conda` environment for compatibility with other dependencies. For `venv` see below. For a `conda` env :
+
+```bash
+#create a new py3.9 env
+conda create -n qkit-env python=3.9
+
+#activate the env
+conda activate qkit-env
+
+```
+and install via `pip` and testPyPi
+
+```bash
+python -m pip install --upgrade pip
+
+pip install -i https://test.pypi.org/simple/ qkit --extra-index-url https://pypi.org/simple
+
+```
+
+
+
+## Alternative Install methods :
 Clone this repository with
 ```bash
 git clone https://github.com/qkitgroup/qkit.git
 ```
 In this directory, create a virtual environment with the required dependencies. Should you not have `virtualenv` installed, see below.
 ```bash
-virtualenv .venv
+ #(Windows) 
+python -m venv .venv-test && .venv-test\Scripts\activate
+
+# (Unix)
+source .venv-test/bin/activate
 ```
-Depending on your operating system you need to run (Linux)
-```bash
-source .\.venv/Scripts/activate
-```
-or (Windows):
-```ps1
-.\.venv\Scripts\Activate.ps1
-``` 
-Now install the dependencies using
+
+
+Now install the dependencies using (in a python 3.9 env)
 ```bash
 pip install -r requirements.txt
 ```
@@ -74,10 +99,20 @@ If you don't have support for virtual environments, enable it by running
 ```bash
 pip install virtualenv
 ```
-### Optional: Adding QKIT to path
-Add the qkit/qkit directory to your systems PYTHONPATH variable.
 
-If you use the included scripts to run JupyterLab, then this step is not required.
 
-## Running
-Depending on your operating system, run `launch.ps1` (Windows) or `launch.sh`(Linux)
+## Usage
+Usually run within a Jupyter Notebook
+
+1. Create a cell 
+```python
+import qkit
+
+qkit.cfg['load_visa'] = True
+qkit.cfg['run_id'] = 'run001'
+qkit.cfg['datadir'] = path/to/data/folder
+qkit.cfg['debug']='ERROR'
+
+qkit.start()
+
+```

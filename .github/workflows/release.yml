@@ -146,8 +146,8 @@ jobs:
       - name: Publish to PyPI (REAL)  # COMMENTED OUT - DO NOT ENABLE UNLESS READY
         if: false
         run: |
-          # python -m pip install --upgrade twine
-          # python -m twine upload --repository testpypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
+           python -m pip install --upgrade twine
+           python -m twine upload --repository pypi ${{ env.WHEEL_PATH }} ${{ env.SDIST_PATH }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
