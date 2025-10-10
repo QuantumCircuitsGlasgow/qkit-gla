@@ -9,7 +9,7 @@ from scipy.ndimage.filters import median_filter
 from scipy.optimize import leastsq
 
 import qkit
-from qkit.analysis.circle_fit import circuit
+from qkit.analysis.circle_fit.circle_fit_2019 import circuit
 from qkit.storage import store
 from qkit.storage.hdf_constants import ds_types
 
