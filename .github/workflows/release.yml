@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main
-      - release
+      # - release
     # Also trigger on tag pushes that start with 'v' (e.g. v1.2.3)
     tags:
       - 'v*'
@@ -60,9 +60,7 @@ jobs:
 
       - name: Build package with version and build tag
         run: |
-              python -m build --sdist --wheel --outdir dist --tag ${{ github.ref_name }}
-        shell: pwsh
-
+              python -m build --sdist --wheel --outdir dist 
 
       - name: Run tests with pytest
         run: |
