@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qkit-gla"
-version = "0.0.1beta"
+version = "0.0.1c"
 description = "A quantum measurement toolkit for superconducting qubits and resonators"
 readme = "README.md"
 license = {file = "LICENSE"}
