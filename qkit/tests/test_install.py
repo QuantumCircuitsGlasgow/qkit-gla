@@ -6,6 +6,7 @@ import logging
 import qkit
 
 
+@pytest.mark.integration
 class TestQkitInstallation:
     """Test suite to verify qkit installation and startup functionality."""
 
@@ -44,6 +45,7 @@ class TestQkitInstallation:
                 # (e.g., in pip-installed environments)
                 pytest.skip("Log directory not writable - this is expected in pip installations")
 
+    @pytest.mark.slow
     def test_qkit_start_silent(self):
         """Test qkit.start() in silent mode."""
         try:
@@ -51,6 +53,7 @@ class TestQkitInstallation:
         except Exception as e:
             pytest.fail(f"qkit.start(silent=True) failed with error: {str(e)}")
 
+    @pytest.mark.slow
     def test_qkit_start_verbose(self):
         """Test qkit.start() in verbose mode."""
         try:

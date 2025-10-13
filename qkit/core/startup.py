@@ -73,14 +73,16 @@ class LoggingInitializer:
                     except Exception:
                         pass  # Ignore cleanup errors
             except Exception:
-                pass  # Skip cleanup if directory isn't readable
-
-    @staticmethod
+                pass  # Skip cleanup if directory isn't readable    @staticmethod
     def setup():
         """Set up logging system."""
-        level = getattr(logging, qkit.cfg.get("debug", "WARNING"))
-        fileLogLevel = getattr(logging, qkit.cfg.get("file_log_level", "WARNING"))
-        stdoutLogLevel = getattr(logging, qkit.cfg.get("stdout_log_level", "WARNING"))
+        debug_level = qkit.cfg.get("debug", "WARNING")
+        file_log_level = qkit.cfg.get("file_log_level", "WARNING") 
+        stdout_log_level = qkit.cfg.get("stdout_log_level", "WARNING")
+        
+        level = getattr(logging, debug_level or "WARNING")
+        fileLogLevel = getattr(logging, file_log_level or "WARNING")
+        stdoutLogLevel = getattr(logging, stdout_log_level or "WARNING")
 
         rootLogger = logging.getLogger()
 
@@ -209,11 +211,12 @@ class UpdateChecker:
                     last_commit = (
                         f.readlines()[-1].decode().split("\t")[0]
                     )
-                    qkit.git = {
+                    setattr(qkit, 'git', {
                         "timestamp": float(last_commit.split(" ")[-2]),
                         "commit_id": last_commit.split(" ")[1],
-                    }
-                    if (time() - qkit.git["timestamp"]) / 3600 / 24 > 21:
+                    })
+                    git_obj = getattr(qkit, 'git')
+                    if (time() - git_obj["timestamp"]) / 3600 / 24 > 21:
                         logging.warning(
                             "Your qkit version is older than 3 weeks. Please consider the 'git pull' command. We are usually trying to get better."
                         )
@@ -262,14 +265,10 @@ class QkitCore:
         # Initialize instrument tools
         from qkit.core.instrument_tools import Insttools
         qkit.instruments = Insttools()
-        logging.debug("Instrument tools initialized")
-
-        # Initialize flow control
+        logging.debug("Instrument tools initialized")        # Initialize flow control
         import qkit.core.flow as flow
         qkit.flow = flow.FlowControl()
-        qkit.flow.sleep = qkit.flow.measurement_idle
-        qkit.flow.start = qkit.flow.measurement_start
-        qkit.flow.end = qkit.flow.measurement_end
+        # Aliases are already set in FlowControl.__init__
         
         # Check for legacy qtlab compatibility (should be disabled)
         if qkit.cfg.get("qt_compatible", False):
@@ -302,6 +301,13 @@ class RemoteInterfaceService:
             qkit.cfg["load_ri_service"] = False
 
 
+class DummyVisa:
+    """Dummy VISA class that raises errors when VISA is not loaded."""
+    def __getattr__(self, name):
+        from qkit import QkitCfgError
+        raise QkitCfgError("Please set qkit.cfg['load_visa'] = True if you need visa.")
+
+
 class VisaLoader:
     """Loads VISA library for instrument communication (S70_load_visa)."""
     
@@ -315,18 +321,52 @@ class VisaLoader:
                 except ImportError:
                     import visa
                 
-                # Check version and warn if old
+                # Check version and handle compatibility
                 try:
                     from pkg_resources import get_distribution
-                    if LooseVersion(get_distribution("pyvisa").version) < LooseVersion("1.5.0"):
-                        logging.warning(
-                            "Old pyvisa version loaded. Please update to a version > 1.5.x"
-                        )
-                except Exception:
-                    pass
+                    pyvisa_version = get_distribution('pyvisa').version
+                    
+                    if LooseVersion(pyvisa_version) < LooseVersion("1.5.0"):
+                        logging.warning("Old pyvisa version loaded. Please update to a version > 1.5.x")
+                        # Compatibility with old visa lib
+                        qkit.visa = visa
+                        qkit.visa.__version__ = pyvisa_version
+                        qkit.visa.qkit_visa_version = 1  # Makes it easier to distinguish between versions
+                        
+                    else:
+                        # Modern pyvisa version
+                        logging.info("Modern pyvisa version loaded. Version %s" % visa.__version__)
+                        try:
+                            rm = visa.ResourceManager(qkit.cfg.get('visa_backend', ""))
+                            qkit.visa = rm
+                            qkit.visa.__version__ = visa.__version__
+                            qkit.visa.qkit_visa_version = 2
+                            qkit.visa.VisaIOError = visa.VisaIOError
+                            
+                            # Add instrument function for compatibility
+                            def instrument(resource_name, **kwargs):
+                                return rm.open_resource(resource_name, **kwargs)
+                            qkit.visa.instrument = instrument
+                            
+                            # Define data types for compatibility
+                            qkit.visa.double = "d"
+                            qkit.visa.single = "f"
+                            qkit.visa.dtypes = {
+                                1: qkit.visa.single,
+                                3: qkit.visa.double,
+                                "d": "d", 
+                                "f": "f"
+                            }
+                            
+                        except OSError as e:
+                            raise OSError('Failed creating ResourceManager. Check if you have NI VISA or pyvisa-py installed.') from e
+                        
+                except Exception as e:
+                    # Fallback if pkg_resources fails
+                    logging.warning(f"Could not determine pyvisa version: {e}")
+                    qkit.visa = visa
+                    qkit.visa.qkit_visa_version = getattr(visa, '__version__', 'unknown')
                 
-                # Store visa reference
-                qkit.visa = visa
                 logging.debug("VISA library loaded successfully")
                 
             except Exception as e:
@@ -334,6 +374,11 @@ class VisaLoader:
                 logging.warning(
                     f"Failed loading visa. Check if you have NI VISA or pyvisa-py installed. Original error: {e}"
                 )
+                # Set dummy visa when loading fails
+                qkit.visa = DummyVisa()
+        else:
+            # VISA loading disabled
+            qkit.visa = DummyVisa()
 
 
 class FileService:
@@ -441,11 +486,13 @@ class StartupFinalizer:
         """Finalize startup process."""
         from qkit.core.lib import temp
         
-        # Register exit handlers
-        qkit.flow.register_exit_handler(temp.File.remove_all)
+        # Register exit handlers (only if flow is available)
+        flow_obj = getattr(qkit, 'flow', None)
+        if flow_obj:
+            flow_obj.register_exit_handler(temp.File.remove_all)
+            # Clear "starting" status
+            flow_obj.finished_starting()
         
-        # Clear "starting" status
-        qkit.flow.finished_starting()
         logging.debug("Startup finalization completed")
 
 
@@ -456,21 +503,22 @@ class UserInitializer:
     def setup():
         """Execute user initialization scripts and settings."""
         # Change to start directory if specified
-        if qkit.cfg.get("startdir", False):
+        startdir = qkit.cfg.get("startdir")
+        if startdir:
             try:
-                os.chdir(qkit.cfg.get("startdir"))
-                logging.debug(f"Changed to start directory: {qkit.cfg.get('startdir')}")
+                os.chdir(startdir)
+                logging.debug(f"Changed to start directory: {startdir}")
             except Exception as e:
                 logging.warning(f"Could not change to start directory: {e}")
 
         # Execute start scripts
-        if qkit.cfg.get("startscript", False):
-            scripts = qkit.cfg.get("startscript")
-            if not isinstance(scripts, (list, tuple)):
-                scripts = [scripts]
+        startscripts = qkit.cfg.get("startscript")
+        if startscripts:
+            if not isinstance(startscripts, (list, tuple)):
+                startscripts = [startscripts]
             
-            for script in scripts:
-                if os.path.isfile(script):
+            for script in startscripts:
+                if script and os.path.isfile(script):
                     try:
                         print(f"Executing (user startscript): {script}")
                         # Use exec instead of execfile (Python 3 compatibility)
@@ -483,22 +531,25 @@ class UserInitializer:
                     logging.warning(f'Did not find startscript "{script}", skipping')
 
         # Register exit scripts
-        if qkit.cfg.get("exitscript", False):
-            scripts = qkit.cfg.get("exitscript")
-            if not isinstance(scripts, (list, tuple)):
-                scripts = [scripts]
+        exitscripts = qkit.cfg.get("exitscript")
+        if exitscripts:
+            if not isinstance(exitscripts, (list, tuple)):
+                exitscripts = [exitscripts]
             
-            for script in scripts:
-                if os.path.isfile(script):
-                    def exit_script_handler():
+            for script in exitscripts:
+                if script and os.path.isfile(script):
+                    def exit_script_handler(script_path=script):
                         try:
-                            with open(script, 'r') as f:
+                            with open(script_path, 'r') as f:
                                 exec(f.read(), globals())
                         except Exception as e:
-                            logging.error(f"Error executing exit script {script}: {e}")
+                            logging.error(f"Error executing exit script {script_path}: {e}")
                     
-                    qkit.flow.register_exit_handler(exit_script_handler)
-                    logging.debug(f"Registered exit script: {script}")
+                    # Access qkit.flow using getattr to avoid type checking issues
+                    flow_obj = getattr(qkit, 'flow', None)
+                    if flow_obj:
+                        flow_obj.register_exit_handler(exit_script_handler)
+                        logging.debug(f"Registered exit script: {script}")
 
 
 def start(silent=False):

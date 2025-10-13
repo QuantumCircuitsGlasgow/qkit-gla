@@ -42,6 +42,10 @@ class FlowControl:
         self._pause = False
         self._exit_handlers = []
         self._callbacks = {}
+          # Add convenience aliases that are set up in startup
+        self.sleep = self.measurement_idle  # Alias for measurement_idle
+        self.start = self.measurement_start  # Alias for measurement_start
+        self.end = self.measurement_end    # Alias for measurement_end
 
     #########
     ### signals
@@ -129,7 +133,12 @@ class FlowControl:
                 return
 
     def _run_script(self, scriptfile):
-        return execfile(scriptfile)
+        """Execute a Python script file."""
+        try:
+            with open(scriptfile, 'r') as f:
+                exec(f.read(), globals())
+        except Exception as e:
+            print(f"Error executing script {scriptfile}: {e}")
 
     def register_exit_script(self, scriptfile):
         self.register_exit_handler(lambda: self._run_script(scriptfile))
@@ -186,17 +195,17 @@ class FlowControl:
 def exception_handler(self, etype, value, tb, tb_offset=None):
     # when the 'tb_offset' keyword argument is omitted above, ipython
     # raises an error.
-    TB = AutoFormattedTB(mode="Context", color_scheme="Linux", tb_offset=1)
+    TB = AutoFormattedTB(mode="Context", color_scheme="Linux", tb_offset=1)    # Check if qkit.flow is available (it's set during startup)
+    fc = getattr(qkit, 'flow', None)
+    if fc is not None:
 
-    fc = qkit.flow
+        # for the unlikely event that an error occured after pushing the
+        # stop button
+        fc._abort = False
 
-    # for the unlikely event that an error occured after pushing the
-    # stop button
-    fc._abort = False
-
-    if fc.is_measuring():
-        # put qtlab back in 'stopped' state
-        fc.measurement_end(abort=True)
+        if fc.is_measuring():
+            # put qtlab back in 'stopped' state
+            fc.measurement_end(abort=True)
 
     TB(etype, value, tb)
 

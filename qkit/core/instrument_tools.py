@@ -7,7 +7,7 @@ import inspect
 import logging
 import os
 import sys
-from imp import reload  # this is needed for py3
+from importlib import reload  # Python 3 way to reload modules
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
